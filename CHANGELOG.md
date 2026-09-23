@@ -4,6 +4,52 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 0.2.0 — 2026-09-22
+
+**Breaking: `index-hooks` now emits the released `search.index-document@1`** (openvibe-contracts
+v0.12.0, owned by OpenVibe.Search) instead of the 0.1.0 proposal, and builds the events Search
+actually consumes. Products on 0.1.0 must update their calls; nothing else changed.
+
+### Changed (breaking)
+- `buildIndexDocument()` takes `owner` (was `service`) and returns exactly the contract shape:
+  `owner`, `type`, `id`, `revision`, `deleted`, `visibility`, `acl`, `canonical_url`, `title`,
+  `summary`, `body`, `facets`, `language` (was `locale`), `authorship`, `provenance`,
+  `publication_state`, `published_at`, `updated_at`, `indexability { decision, reasons }`.
+  Gone: `schema`, `owner_service`, `resource_type`, `resource_id`, `acl.public`, `body_truncated`,
+  the `indexability.indexable/listable/gate` fields and the provenance object.
+- Mappings onto the contract enums: visibility `gated` → `members`; authorship `hybrid` →
+  `ai_assisted`, `ai` → `ai_generated`; gate reason codes → Search's known reasons where one exists
+  (`thin` → `thin_content`, `ai_generated_unreviewed` → `ai_unreviewed`, `unreviewed_sensitive` →
+  `sensitive_unreviewed`, `gated` → `members_only`, `unpublished` → `not_published`,
+  `missing_canonical` → `missing_canonical_url`, `noindex_requested` → `owner_decision`; the rest
+  keep the gate's code). `provenance` is now an array of typed references built from citations
+  (Sources items, or the owner's own citation records), the AI run (with `stub: true` for stub
+  output) and extra `provenance` refs.
+- `tombstone()` returns exactly `{ owner, type, id, revision, deleted: true }`. Anything not
+  published (draft, scheduled, unpublished, retracted, archived, deleted) is still a tombstone, and
+  so is unlisted content unless `includeUnlisted: true` (then `visibility: 'unlisted'`).
+- ACL follows the contract: `subjects` are `usr_`/`gst_` only, plus `groups` and `entitlements`;
+  private needs subjects, members needs at least one of the three. Text is clipped to the contract's
+  limits (title 500, summary 4000, body 48000); facets are checked against its rules.
+- `publicationEvent()` (the product's own `<product>.<type>.<action>` event) no longer embeds the
+  document; its payload is `{ canonical_url, publication_state, indexability }`.
+
+### Added
+- `indexEvent({ document })`: `<owner>.index_document.upserted` (payload = document) or
+  `<owner>.index_document.deleted` (payload = `{ type, id, revision }`), subject
+  `{ type, id, revision }`, visibility internal — the envelopes OpenVibe.Search's webhook consumes.
+- `createIndexSequencer(db, { prefix })`: a monotonic index revision per resource in
+  `<prefix>_index_revisions`. Search refuses a different document at an equal revision and lets a
+  tombstone win ties, so every indexed change (content, visibility, state, canonical URL,
+  decision) needs a higher revision; an unchanged document keeps its revision (a safe replay).
+- `searchIndexability(decision)`, `SEARCH_REASONS`, `AUTHORSHIP`, `LIMITS`.
+- Tests validate every emitted document with `validate('search.index-document@1')` and every
+  envelope with `validate('events.event-envelope@1')` from openvibe-contracts v0.12.0, and mirror
+  Search's webhook checks (owner = source, subject matches the payload).
+
+### Removed
+- `docs/contracts-proposal/search.index-document.v1.json` (superseded by the released contract).
+
 ## 0.1.0 — 2026-09-22
 
 First version (roadmap Wave 15). Packages only: no runtime, no domain, no database.

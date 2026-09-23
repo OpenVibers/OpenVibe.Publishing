@@ -7,6 +7,7 @@ const assert = require('assert');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
+const contracts = require('openvibe-contracts');
 const { tempDir, fakeClock, suite } = require('./helpers/db');
 const { createWiki } = require('../examples/two-products/wiki/app');
 const { createBlog } = require('../examples/two-products/blog/app');
@@ -191,10 +192,22 @@ test('HTTP: pages useful without JavaScript, 301 for old slugs, private/deleted 
         assert.doesNotMatch(await (await w.get('/sitemap.xml')).text(), /rye/);
         assert.doesNotMatch(await (await w.get('/feed.atom')).text(), /<entry>/);
         assert.strictEqual(JSON.parse(await (await w.get('/feed.json')).text()).items.length, 0);
-        const events = wiki.outbox();
-        assert.deepStrictEqual(events.map((e) => e.event_type), ['wiki.page.published', 'wiki.page.updated']);
-        assert.strictEqual(events[1].visibility, 'internal');
-        assert.deepStrictEqual(events[1].payload.document.acl, { public: false, subjects: [ALEX] });
+        let events = wiki.outbox();
+        assert.deepStrictEqual(events.map((e) => e.event_type), [
+            'wiki.index_document.upserted', 'wiki.page.published', // publish
+            'wiki.index_document.upserted', // rename: new canonical URL, new index revision
+            'wiki.index_document.upserted', 'wiki.page.updated', // made private
+        ]);
+        const docs = events.filter((e) => e.event_type.startsWith('wiki.index_document.')).map((e) => e.payload);
+        assert.deepStrictEqual(docs.map((d) => d.revision), [1, 2, 3], 'every indexed change is a higher revision');
+        assert.strictEqual(docs[1].canonical_url, 'https://openvibe.wiki/p/rye-grain');
+        assert.strictEqual(docs[2].visibility, 'private');
+        assert.deepStrictEqual(docs[2].acl, { subjects: [ALEX] });
+        assert.strictEqual(events[4].visibility, 'internal');
+        for (const e of events) {
+            assert.ok(contracts.validate('events.event-envelope@1', { ...e, event_id: contracts.ids.newId('event') }).valid, e.event_type);
+        }
+        for (const d of docs) assert.ok(contracts.validate('search.index-document@1', d).valid);
 
         blog.setVisibility(post, 'gated');
         assert.strictEqual((await b.get('/posts/crumb-shots')).status, 404);
@@ -206,10 +219,12 @@ test('HTTP: pages useful without JavaScript, 301 for old slugs, private/deleted 
         wiki.remove(id, { actor: ALEX });
         assert.strictEqual((await w.get('/p/rye-grain')).status, 410);
         assert.strictEqual((await w.get('/p/rye')).status, 410);
-        const last = wiki.outbox().pop();
-        assert.strictEqual(last.event_type, 'wiki.page.deleted');
-        assert.strictEqual(last.payload.document.deleted, true);
-        assert.ok(!('body' in last.payload.document));
+        events = wiki.outbox().slice(-2);
+        assert.deepStrictEqual(events.map((e) => e.event_type), ['wiki.index_document.deleted', 'wiki.page.deleted']);
+        assert.deepStrictEqual(events[0].payload, { type: 'page', id, revision: 4 });
+        assert.deepStrictEqual(events[0].subject, { type: 'page', id, revision: 4 });
+        assert.strictEqual(events[1].payload.publication_state, 'deleted');
+        for (const e of events) assert.ok(contracts.validate('events.event-envelope@1', { ...e, event_id: contracts.ids.newId('event') }).valid);
     } finally { w.close(); b.close(); wiki.close(); blog.close(); }
 });
 

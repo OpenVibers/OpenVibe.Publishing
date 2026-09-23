@@ -1,6 +1,6 @@
 {
   "name": "openvibe-publishing",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared publishing packages for the OpenVibe publication products: revisions, scheduling, taxonomy, citations, media attachments, discussion references, the SEO indexability gate, authorship, index hooks and SSR helpers. Packages, not an authority.",
   "main": "index.js",
   "exports": {
@@ -20,7 +20,6 @@
   "files": [
     "index.js",
     "lib/",
-    "docs/",
     "CHANGELOG.md"
   ],
   "scripts": {
@@ -50,6 +49,6 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "better-sqlite3": "^11.10.0",
-    "openvibe-contracts": "https://codeload.github.com/OpenVibers/OpenVibe.Contracts/tar.gz/refs/tags/v0.7.0"
+    "openvibe-contracts": "https://codeload.github.com/OpenVibers/OpenVibe.Contracts/tar.gz/refs/tags/v0.12.0"
   }
 }

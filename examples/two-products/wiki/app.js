@@ -6,7 +6,7 @@
  *   node examples/two-products/wiki/app.js      # http://127.0.0.1:4801 with a temp database
  *
  * Uses: revisions (wiki_page_*), citations (wiki_citations), seo gate + redirects + sitemap +
- * Atom/JSON feeds, authorship (AI pages start as drafts), index-hooks (events into wiki_outbox), ssr.
+ * Atom/JSON feeds, authorship (AI pages start as drafts), index-hooks (Search index events + product events into wiki_outbox), ssr.
  */
 const http = require('http');
 const path = require('path');
@@ -47,6 +47,7 @@ function createWiki({ dbPath, origin = 'https://openvibe.wiki', now = () => Date
     const citations = createCitationStore(db, { prefix: 'wiki', now, revisions });
     const redirects = seo.createRedirectStore(db, { prefix: 'wiki_page', now });
     const reviews = authorship.createReviewLog(db, { prefix: 'wiki_page', now });
+    const sequencer = hooks.createIndexSequencer(db, { prefix: 'wiki', now });
 
     const pathOf = (slug) => `/p/${slug}`;
     const urlOf = (slug) => seo.canonicalUrl(origin, pathOf(slug));
@@ -64,23 +65,32 @@ function createWiki({ dbPath, origin = 'https://openvibe.wiki', now = () => Date
 
     function document(page, rev, decision) {
         return hooks.buildIndexDocument({
-            service: 'wiki', type: 'page', id: page.id, revision: rev ? rev.number : 0, state: page.state, visibility: page.visibility,
+            owner: 'wiki', type: 'page', id: page.id, revision: 0, state: page.state, visibility: page.visibility,
             canonicalUrl: urlOf(page.slug), title: rev ? rev.fields.title : page.slug, summary: rev ? ssr.markdownToText(rev.content, 160) : null,
             body: rev ? ssr.markdownToText(rev.content) : '', decision, acl: { subjects: [page.owner] },
-            provenance: { authorship: rev && rev.meta.authorship, citations: rev ? citations.forRevision(page.id, rev.number) : [] },
+            authorship: rev && rev.meta.authorship, citations: rev ? citations.forRevision(page.id, rev.number) : [],
+            facets: { content_revision: rev ? rev.number : 0 },
             publishedAt: page.published_at, updatedAt: page.updated_at,
         });
     }
 
-    function emit(before, page, actor) {
+    /**
+     * After any change: send Search the current document (or tombstone) when it differs from the
+     * last one sent, and the product event when the publication state moved. Both go to the
+     * outbox in the caller's transaction.
+     */
+    function sync(before, page, actor) {
         const rev = page.published_revision ? revisions.get(page.id, page.published_revision) : null;
+        const decision = rev ? decide(page, rev) : null;
+        const sentBefore = sequencer.current('wiki', 'page', page.id);
+        const doc = sequencer.stamp(document(page, rev, decision));
+        const out = [];
+        if (doc.revision !== sentBefore) out.push(hooks.indexEvent({ document: doc, now: now() }));
         const action = hooks.actionFor(before && { state: before.state, visibility: before.visibility, revision: before.published_revision },
             { state: page.state, visibility: page.visibility, revision: page.published_revision });
-        if (!action) return null;
-        const decision = rev ? decide(page, rev) : null;
-        const env = hooks.publicationEvent({ product: 'wiki', type: 'page', action, id: page.id, revision: page.published_revision || 0, actor, document: document(page, rev, decision), decision, now: now() });
-        db.prepare('INSERT INTO wiki_outbox (envelope) VALUES (?)').run(JSON.stringify(env));
-        return env;
+        if (action) out.push(hooks.publicationEvent({ product: 'wiki', type: 'page', action, id: page.id, revision: page.published_revision || 0, actor, document: doc, decision, now: now() }));
+        for (const env of out) db.prepare('INSERT INTO wiki_outbox (envelope) VALUES (?)').run(JSON.stringify(env));
+        return out;
     }
 
     const api = {
@@ -126,7 +136,7 @@ function createWiki({ dbPath, origin = 'https://openvibe.wiki', now = () => Date
                 const ok = authorship.canPublish(rec, reviews.latest(id, revision));
                 if (!ok.ok) throw Object.assign(new Error(`cannot publish: ${ok.reason}`), { status: 409, code: ok.reason });
                 db.prepare("UPDATE wiki_pages SET state = 'published', published_revision = ?, published_at = COALESCE(published_at, ?), updated_at = ? WHERE id = ?").run(revision, now(), now(), id);
-                return emit(before, getPage(id), actor);
+                return sync(before, getPage(id), actor);
             })();
         },
 
@@ -134,7 +144,7 @@ function createWiki({ dbPath, origin = 'https://openvibe.wiki', now = () => Date
             return db.transaction(() => {
                 const before = getPage(id);
                 db.prepare('UPDATE wiki_pages SET visibility = ?, updated_at = ? WHERE id = ?').run(visibility, now(), id);
-                return emit(before, getPage(id), actor);
+                return sync(before, getPage(id), actor);
             })();
         },
 
@@ -144,6 +154,7 @@ function createWiki({ dbPath, origin = 'https://openvibe.wiki', now = () => Date
                 const slug = slugify(newTitle);
                 redirects.recordMove(id, pathOf(page.slug), pathOf(slug));
                 db.prepare('UPDATE wiki_pages SET slug = ?, updated_at = ? WHERE id = ?').run(slug, now(), id);
+                sync(page, getPage(id), 'svc:wiki'); // the canonical URL changed: Search gets a new revision
                 return slug;
             })();
         },
@@ -152,7 +163,7 @@ function createWiki({ dbPath, origin = 'https://openvibe.wiki', now = () => Date
             return db.transaction(() => {
                 const before = getPage(id);
                 db.prepare("UPDATE wiki_pages SET state = 'deleted', updated_at = ? WHERE id = ?").run(now(), id);
-                return emit(before, getPage(id), actor);
+                return sync(before, getPage(id), actor);
             })();
         },
 

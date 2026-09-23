@@ -3,8 +3,9 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, 0.1.0 (roadmap Wave 15). The modules are tested and the exit proof
-(`examples/two-products`) runs in `npm test`; not tagged or released yet. No product uses them in production yet: Wiki and Blog (Wave 16) are the
+**Status:** alpha, 0.2.0 (roadmap Wave 15). The modules are tested and the exit proof
+(`examples/two-products`) runs in `npm test`. v0.1.0 is tagged; 0.2.0 (the released Search
+document shape, a breaking change — see [CHANGELOG.md](CHANGELOG.md)) is not tagged yet. No product uses them in production yet: Wiki and Blog (Wave 16) are the
 first planned consumers.
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.
@@ -36,7 +37,7 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/discussion` | Community comment-thread references: resolves via `POST /api/v1/comments/threads/resolve`, stores the thread id only (no comment content) | `<prefix>_discussion_refs` |
 | `openvibe-publishing/seo` | The deterministic **indexability gate**; canonical URLs; history-aware redirects (old slug → 301, gone → 410); meta/robots tags; sitemaps; RSS, Atom and JSON Feed; JSON-LD built only from provided fields | `<prefix>_redirects` |
 | `openvibe-publishing/authorship` | human / ai / hybrid / imported records with the OpenVibe.AI workflow + run id, disclosure labels, AI content held as draft + noindex until a person's review | `<prefix>_reviews` |
-| `openvibe-publishing/index-hooks` | Search index documents (and tombstones) from a published revision; `<product>.<type>.published\|updated\|unpublished\|deleted` event envelopes for the product's outbox | — |
+| `openvibe-publishing/index-hooks` | `search.index-document@1` documents and tombstones, the `<owner>.index_document.upserted\|deleted` events OpenVibe.Search consumes, a monotonic index-revision sequencer, and the product's own `<product>.<type>.published\|updated\|unpublished\|deleted` events | `<prefix>_index_revisions` |
 | `openvibe-publishing/ssr` | auto-escaping `html` tagged templates with `raw()`, a safe Markdown subset, plain-text extraction, word count, server pagination, breadcrumbs, diff markup, honest `<time>` | — |
 
 `require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`, …).
@@ -46,7 +47,7 @@ Every module is its own entry point and can be used alone.
 Pin the release tarball, like every OpenVibe package (never a `file:` link or a vendored copy):
 
 ```json
-"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v0.1.0"
+"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v0.2.0"
 ```
 
 `better-sqlite3` (≥ 11) is a peer dependency: the product brings its own handle. The only runtime
@@ -96,13 +97,32 @@ published document) all require the decision, so an object without one cannot re
 
 ## Events and Search
 
-`index-hooks.buildIndexDocument()` produces the Search document ([REF] §12.3 fields plus the gate
-decision) or a tombstone; the proposed schema is
-[docs/contracts-proposal/search.index-document.v1.json](docs/contracts-proposal/search.index-document.v1.json).
-`publicationEvent()` wraps it in an `events.event-envelope@1` envelope with `event_type`
-`<product>.<type>.<action>` and no `event_id` (the OpenVibe.Events outbox assigns one); events about
-private, gated or unlisted content are `internal`. Enqueue it with the Events outbox in the same
-transaction as the product's state change.
+`index-hooks.buildIndexDocument()` produces exactly the released `search.index-document@1`
+(openvibe-contracts v0.12.0, owned by OpenVibe.Search): visibility `public | unlisted | members |
+private`, ACL `subjects | groups | entitlements`, authorship `human | ai_assisted | ai_generated |
+imported`, provenance as typed references (Sources items, the product's citation records, the AI
+run with `stub: true` for stub output), and `indexability { decision: index|noindex, reasons }` with
+the gate's codes mapped onto Search's known reasons (`hooks.SEARCH_REASONS`). Anything not
+published, and unlisted content unless `includeUnlisted`, becomes the tombstone
+`{ owner, type, id, revision, deleted: true }`.
+
+Search orders documents by `revision`, refuses a different document at an equal revision and lets a
+tombstone win ties, so the revision must rise with every indexed change, not only content edits.
+`createIndexSequencer(db, { prefix })` keeps that counter in the product's database.
+
+```js
+const seq = hooks.createIndexSequencer(db, { prefix: 'wiki' });
+const doc = seq.stamp(hooks.buildIndexDocument({ owner: 'wiki', type: 'page', id, revision: 0, state, visibility, … , decision }));
+outbox.enqueue(hooks.indexEvent({ document: doc }));   // wiki.index_document.upserted | .deleted
+```
+
+`indexEvent()` builds the envelope Search's webhook consumes (payload = the document, or
+`{ type, id, revision }` for a deletion; subject `{ type, id, revision }`; visibility internal).
+`publicationEvent()` builds the product's own `<product>.<type>.<action>` event (payload: canonical
+URL, publication state, indexability; public only for public, listable content). Neither sets
+`event_id`: the OpenVibe.Events outbox assigns it. Enqueue both in the same transaction as the
+product's state change. Tests validate every document and envelope with openvibe-contracts
+v0.12.0 and mirror Search's webhook checks.
 
 ## Exit proof: two products
 
@@ -135,4 +155,5 @@ fnm exec --using=22.22.1 npm test          # every test/*.test.js, temp database
 - `openvibe-shared` v1.0.0 (`seo`), at runtime.
 - `better-sqlite3` ≥ 11, supplied by the consumer.
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
-  (validated in tests against `openvibe-contracts` v0.7.0), and the proposed `search.index-document@1`.
+  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.12.0, a
+  devDependency: nothing in `lib/` needs it at runtime).
