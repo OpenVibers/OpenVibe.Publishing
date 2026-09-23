@@ -1,0 +1,32 @@
+name: ci
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.1   # the consuming services run Node 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      # The release artifact is GitHub's tarball of the tag (repository root = package root):
+      # install one built the same way into an empty project and load every entry point by name.
+      - name: install from a tag-style tarball
+        run: |
+          git archive --format=tar.gz --prefix=OpenVibe.Publishing-ci/ -o "$RUNNER_TEMP/openvibe-publishing.tgz" HEAD
+          mkdir "$RUNNER_TEMP/consumer" && cd "$RUNNER_TEMP/consumer" && npm init -y >/dev/null
+          npm install --no-audit --no-fund "$RUNNER_TEMP/openvibe-publishing.tgz" better-sqlite3@11
+          node -e "
+            const p = require('openvibe-publishing');
+            for (const m of ['revisions','schedule','taxonomy','citations','media','discussion','seo','authorship','index-hooks','ssr']) require('openvibe-publishing/' + m);
+            const Database = require('better-sqlite3');
+            const db = new Database(':memory:');
+            p.revisions.createRevisionStore(db, { prefix: 'ci' }).create({ entityId: 'e', expectedRevision: 0, content: 'x' });
+            console.log('ok', require('openvibe-publishing/package.json').version);
+          "

@@ -1,0 +1,55 @@
+{
+  "name": "openvibe-publishing",
+  "version": "0.1.0",
+  "description": "Shared publishing packages for the OpenVibe publication products: revisions, scheduling, taxonomy, citations, media attachments, discussion references, the SEO indexability gate, authorship, index hooks and SSR helpers. Packages, not an authority.",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./revisions": "./lib/revisions.js",
+    "./schedule": "./lib/schedule.js",
+    "./taxonomy": "./lib/taxonomy.js",
+    "./citations": "./lib/citations.js",
+    "./media": "./lib/media.js",
+    "./discussion": "./lib/discussion.js",
+    "./seo": "./lib/seo.js",
+    "./authorship": "./lib/authorship.js",
+    "./index-hooks": "./lib/index-hooks.js",
+    "./ssr": "./lib/ssr.js"
+  },
+  "files": [
+    "index.js",
+    "lib/",
+    "docs/",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenVibers/OpenVibe.Publishing.git"
+  },
+  "homepage": "https://github.com/OpenVibers/OpenVibe.Publishing#readme",
+  "license": "MIT",
+  "dependencies": {
+    "openvibe-shared": "https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v1.0.0"
+  },
+  "peerDependencies": {
+    "better-sqlite3": ">=11"
+  },
+  "peerDependenciesMeta": {
+    "better-sqlite3": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "better-sqlite3": "^11.10.0",
+    "openvibe-contracts": "https://codeload.github.com/OpenVibers/OpenVibe.Contracts/tar.gz/refs/tags/v0.7.0"
+  }
+}

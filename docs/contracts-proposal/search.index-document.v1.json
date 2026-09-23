@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openvibe.network/contracts/search/index-document.v1.json",
+  "title": "SearchIndexDocument",
+  "description": "PROPOSAL (openvibe-publishing 0.1.0, for OpenVibe.Contracts and OpenVibe.Search). The document a publication product sends to Search for one revision of one resource, or the tombstone that removes it. Owner, resource, revision, visibility + ACL, canonical URL, title/summary/body, facets, provenance, publication state, deletion marker ([REF] §12.3), plus the publishing SEO gate's indexability decision. Search must never return a document to a query that fails its ACL, and must not list a document whose indexability.listable is false on public surfaces.",
+  "oneOf": [
+    {
+      "title": "IndexDocument",
+      "type": "object",
+      "required": ["schema", "owner_service", "resource_type", "resource_id", "revision", "visibility", "acl", "canonical_url", "title", "summary", "body", "facets", "provenance", "publication_state", "deleted", "indexability", "published_at", "updated_at"],
+      "additionalProperties": false,
+      "properties": {
+        "schema": { "const": "search.index-document@1" },
+        "owner_service": { "$ref": "#/$defs/service" },
+        "resource_type": { "$ref": "#/$defs/segment" },
+        "resource_id": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "revision": { "type": "integer", "minimum": 0 },
+        "visibility": { "enum": ["public", "private", "gated"] },
+        "acl": {
+          "oneOf": [
+            { "type": "object", "required": ["public"], "additionalProperties": false, "properties": { "public": { "const": true } } },
+            {
+              "type": "object", "required": ["public"], "additionalProperties": false,
+              "properties": {
+                "public": { "const": false },
+                "subjects": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^(usr|gst|app|mod)_[0-9A-HJKMNP-TV-Z]{26}$" } },
+                "entitlements": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+              },
+              "anyOf": [{ "required": ["subjects"] }, { "required": ["entitlements"] }]
+            }
+          ]
+        },
+        "canonical_url": { "type": "string", "pattern": "^https?://" },
+        "title": { "type": "string", "minLength": 1 },
+        "summary": { "type": ["string", "null"] },
+        "body": { "type": "string", "maxLength": 100000 },
+        "body_truncated": { "const": true },
+        "locale": { "type": "string" },
+        "facets": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]{0,39}$" },
+          "additionalProperties": {
+            "anyOf": [
+              { "type": ["string", "number", "boolean"] },
+              { "type": "array", "items": { "type": ["string", "number", "boolean"] } }
+            ]
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "authorship": {
+              "type": "object", "required": ["mode"], "additionalProperties": false,
+              "properties": {
+                "mode": { "enum": ["human", "ai", "hybrid", "imported"] },
+                "reviewed": { "type": "boolean" },
+                "workflow": { "type": "object", "required": ["id", "run_id"], "additionalProperties": false, "properties": { "id": { "type": "string" }, "run_id": { "type": "string" } } }
+              }
+            },
+            "citations": {
+              "type": "array",
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "properties": {
+                  "source_item_id": { "type": "string" },
+                  "url": { "type": "string" },
+                  "retrieved_at": { "type": "string", "format": "date-time" },
+                  "license_note": { "type": "string" }
+                },
+                "anyOf": [{ "required": ["source_item_id"] }, { "required": ["url"] }]
+              }
+            },
+            "derived_from": { "type": "object" }
+          }
+        },
+        "publication_state": { "const": "published" },
+        "deleted": { "const": false },
+        "indexability": {
+          "type": "object", "required": ["indexable", "listable", "reasons", "gate"], "additionalProperties": false,
+          "properties": {
+            "indexable": { "type": "boolean" },
+            "listable": { "type": "boolean" },
+            "reasons": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z_]*$" } },
+            "gate": { "type": ["string", "null"] }
+          }
+        },
+        "published_at": { "type": ["string", "null"], "format": "date-time" },
+        "updated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    {
+      "title": "IndexTombstone",
+      "type": "object",
+      "required": ["schema", "owner_service", "resource_type", "resource_id", "revision", "publication_state", "deleted", "updated_at"],
+      "additionalProperties": false,
+      "properties": {
+        "schema": { "const": "search.index-document@1" },
+        "owner_service": { "$ref": "#/$defs/service" },
+        "resource_type": { "$ref": "#/$defs/segment" },
+        "resource_id": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "revision": { "type": "integer", "minimum": 0 },
+        "publication_state": { "enum": ["draft", "scheduled", "published", "unpublished", "deleted"] },
+        "deleted": { "const": true },
+        "updated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  ],
+  "$defs": {
+    "service": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,39}$" },
+    "segment": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,39}$" }
+  }
+}
