@@ -4,6 +4,22 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 0.2.1 — 2026-09-23
+
+Security fix (no API change).
+
+### Fixed
+- **ReDoS in `ssr.renderMarkdown` and `ssr.markdownToText`.** Several patterns backtracked
+  super-linearly on untrusted Markdown, blocking the event loop on every render of the page:
+  a heading line with a long run of trailing spaces (`# a` + 4,000 spaces + `x` took 28 s, cubic),
+  unclosed `**`/`__`/`~~` openers (200 KB took 8 s each), backtick runs of rising length (26 s),
+  a fence line with trailing spaces before a non-word character (quadratic), and `[` runs in
+  `markdownToText` (quadratic). Headings, fences, emphasis and code spans are now matched in
+  linear (code spans O(n log n)) time with the same output (checked by differential fuzzing
+  against 0.2.0). One visible change: `markdownToText` no longer treats a `[` inside link text as
+  part of it (`[a [b](u) c` → `[a b c`, was `a [b c`). Products that render user Markdown with
+  this module should move to 0.2.1.
+
 ## 0.2.0 — 2026-09-22
 
 **Breaking: `index-hooks` now emits the released `search.index-document@1`** (openvibe-contracts

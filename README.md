@@ -3,9 +3,9 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, 0.2.0 (roadmap Wave 15). The modules are tested and the exit proof
-(`examples/two-products`) runs in `npm test`. v0.1.0 is tagged; 0.2.0 (the released Search
-document shape, a breaking change — see [CHANGELOG.md](CHANGELOG.md)) is not tagged yet. No product uses them in production yet: Wiki and Blog (Wave 16) are the
+**Status:** alpha, 0.2.1 (roadmap Wave 15). The modules are tested and the exit proof
+(`examples/two-products`) runs in `npm test`. v0.1.0 and v0.2.0 are tagged; 0.2.1 (a Markdown
+ReDoS fix — see [CHANGELOG.md](CHANGELOG.md)) is not tagged yet. No product uses them in production yet: Wiki and Blog (Wave 16) are the
 first planned consumers.
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.

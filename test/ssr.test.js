@@ -37,6 +37,37 @@ test('markdown: the supported subset renders; raw HTML and unsafe links do not',
     assert.doesNotMatch(ssr.renderMarkdown('[x](https://a.test/"onmouseover="alert(1))'), /" onmouseover|"onmouseover="alert/);
 });
 
+test('markdown: pathological input renders in linear time (no ReDoS)', () => {
+    let codeRuns = '';
+    for (let k = 1; codeRuns.length < 60000; k++) codeRuns += `a${'`'.repeat(k)}`;
+    const cases = {
+        heading: `# a${' '.repeat(6000)}x`,
+        fence: `\`\`\`${' '.repeat(60000)}!`,
+        strong: '**x '.repeat(40000),
+        underscore: ' __x'.repeat(40000),
+        strike: '~~x '.repeat(40000),
+        codeRuns,
+    };
+    for (const [name, src] of Object.entries(cases)) {
+        const started = Date.now();
+        ssr.renderMarkdown(src);
+        const ms = Date.now() - started;
+        assert.ok(ms < 1000, `renderMarkdown ${name} took ${ms}ms`);
+    }
+    const started = Date.now();
+    ssr.markdownToText('['.repeat(100000));
+    assert.ok(Date.now() - started < 1000, `markdownToText took ${Date.now() - started}ms`);
+});
+
+test('markdown: code spans, emphasis and headings keep their meaning', () => {
+    assert.strictEqual(ssr.renderMarkdown('# Title ##  '), '<h2>Title</h2>');
+    assert.strictEqual(ssr.renderMarkdown('## a # b #'), '<h3>a # b</h3>');
+    assert.strictEqual(ssr.renderMarkdown('```  js  \nx\n```'), '<pre><code class="language-js">x</code></pre>');
+    assert.strictEqual(ssr.renderMarkdown('``a`b`` and `c` ``d`'), '<p><code>a`b</code> and <code>c</code> `<code>d</code></p>');
+    assert.strictEqual(ssr.renderMarkdown('**a** **b **c** ~~d~~ x__y__ __z__'), '<p><strong>a</strong> <strong>b **c</strong> <del>d</del> x__y__ <strong>z</strong></p>');
+    assert.strictEqual(ssr.markdownToText('[a [b](https://x.test) c'), '[a b c');
+});
+
 test('markdownToText and wordCount', () => {
     assert.strictEqual(ssr.markdownToText('# Hi\n\nSome **bold** [link](https://x.test).\n\n```\ncode\n```'), 'Hi Some bold link. code');
     assert.strictEqual(ssr.markdownToText('one two three four', 10), 'one two…');
