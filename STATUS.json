@@ -34,7 +34,7 @@
   ],
   "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
-  "contracts": "openvibe-contracts v0.12.0: emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
+  "contracts": "openvibe-contracts v0.32.0: emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
   "released": true,
   "updated": "2026-09-23"
 }

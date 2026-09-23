@@ -52,7 +52,7 @@ Pin the release tarball, like every OpenVibe package (never a `file:` link or a 
 ```
 
 `better-sqlite3` (≥ 11) is a peer dependency: the product brings its own handle. The only runtime
-dependency is `openvibe-shared` (v1.0.0), whose `seo` module is the network's single implementation
+dependency is `openvibe-shared` (v1.5.0), whose `seo` module is the network's single implementation
 of head tags, sitemap XML, robots.txt and JSON-LD escaping; this package adds the publication rules on top.
 
 ## The indexability gate
@@ -123,7 +123,7 @@ outbox.enqueue(hooks.indexEvent({ document: doc }));   // wiki.index_document.up
 URL, publication state, indexability; public only for public, listable content). Neither sets
 `event_id`: the OpenVibe.Events outbox assigns it. Enqueue both in the same transaction as the
 product's state change. Tests validate every document and envelope with openvibe-contracts
-v0.12.0 and mirror Search's webhook checks.
+v0.32.0 and mirror Search's webhook checks.
 
 ## Exit proof: two products
 
@@ -153,8 +153,8 @@ fnm exec --using=22.22.1 npm test          # every test/*.test.js, temp database
 
 ## Depends on
 
-- `openvibe-shared` v1.0.0 (`seo`), at runtime.
+- `openvibe-shared` v1.5.0 (`seo`), at runtime.
 - `better-sqlite3` ≥ 11, supplied by the consumer.
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
-  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.12.0, a
+  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.32.0, a
   devDependency: nothing in `lib/` needs it at runtime).

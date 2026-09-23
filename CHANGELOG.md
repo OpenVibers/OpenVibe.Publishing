@@ -4,6 +4,12 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## Unreleased
+
+- `openvibe-shared` v1.0.0 -> v1.5.0 (the runtime dependency; `seo` is unchanged, so consumers that
+  pin a newer openvibe-shared share one copy once this is tagged). Tests use `openvibe-contracts`
+  v0.32.0 (devDependency).
+
 ## 0.2.1 — 2026-09-23
 
 Security fix (no API change).
