@@ -23,18 +23,18 @@
     "index-hooks",
     "ssr"
   ],
-  "consumers": [],
-  "plannedConsumers": [
-    "OpenVibe.Wiki",
-    "OpenVibe.Blog",
-    "OpenVibe.News",
-    "OpenVibe.Reviews",
-    "OpenVibe.Deals",
-    "OpenVibe.Coupons",
-    "OpenVibe.Trade"
+  "consumers": [
+    "OpenVibe.Wiki (v0.2.1; public at https://openvibe.wiki)",
+    "OpenVibe.Blog (v0.2.1; public at https://openvibe.blog)",
+    "OpenVibe.News (v0.2.1; deployed loopback-only, not launched)",
+    "OpenVibe.Reviews (v0.2.1; deployed loopback-only, not launched)",
+    "OpenVibe.Deals (v0.2.1; deployed loopback-only, not launched)",
+    "OpenVibe.Coupons (v0.2.1; deployed loopback-only, not launched)",
+    "OpenVibe.Trade (v0.2.1; deployed loopback-only, not launched)"
   ],
+  "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
   "contracts": "openvibe-contracts v0.12.0: emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
-  "released": false,
-  "updated": "2026-09-22"
+  "released": true,
+  "updated": "2026-09-23"
 }

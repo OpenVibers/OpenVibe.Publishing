@@ -4,9 +4,10 @@
 > Deals, Coupons and Trade.
 
 **Status:** alpha, 0.2.1 (roadmap Wave 15). The modules are tested and the exit proof
-(`examples/two-products`) runs in `npm test`. v0.1.0 and v0.2.0 are tagged; 0.2.1 (a Markdown
-ReDoS fix — see [CHANGELOG.md](CHANGELOG.md)) is not tagged yet. No product uses them in production yet: Wiki and Blog (Wave 16) are the
-first planned consumers.
+(`examples/two-products`) runs in `npm test`. v0.1.0, v0.2.0 and v0.2.1 (a Markdown
+ReDoS fix — see [CHANGELOG.md](CHANGELOG.md)) are tagged; CI is green on v0.2.1. Seven products pin
+v0.2.1 and run it in production: Wiki and Blog (public at openvibe.wiki and openvibe.blog) and News,
+Reviews, Deals, Coupons and Trade (deployed loopback-only on the host, not launched).
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.
 
@@ -47,7 +48,7 @@ Every module is its own entry point and can be used alone.
 Pin the release tarball, like every OpenVibe package (never a `file:` link or a vendored copy):
 
 ```json
-"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v0.2.0"
+"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v0.2.1"
 ```
 
 `better-sqlite3` (≥ 11) is a peer dependency: the product brings its own handle. The only runtime
