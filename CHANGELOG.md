@@ -6,7 +6,7 @@ major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the 
 
 ## 0.4.0 — 2026-09-24
 
-openvibe-shared is now a **peer dependency** (`>=1.5.0`), resolved from the product's own install, the way `better-sqlite3` already was. Until now every Shared release forced a Publishing release; without one, each product installed a second, nested copy of openvibe-shared. Products must keep openvibe-shared in their own dependencies (every OpenVibe product does). No API change.
+openvibe-shared is now an optional **peer dependency** (`>=1.5.0`), resolved from the product's own install and never fetched from the npm registry (where it is not published), the way `better-sqlite3` already was. Until now every Shared release forced a Publishing release; without one, each product installed a second, nested copy of openvibe-shared. Products must keep openvibe-shared in their own dependencies (every OpenVibe product does). No API change.
 
 ## 0.3.2 — 2026-09-24
 
