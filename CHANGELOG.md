@@ -4,6 +4,10 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 0.4.0 — 2026-09-24
+
+openvibe-shared is now a **peer dependency** (`>=1.5.0`), resolved from the product's own install, the way `better-sqlite3` already was. Until now every Shared release forced a Publishing release; without one, each product installed a second, nested copy of openvibe-shared. Products must keep openvibe-shared in their own dependencies (every OpenVibe product does). No API change.
+
 ## 0.3.2 — 2026-09-24
 
 Depends on openvibe-shared v1.11.0 (the OpenVibe Frame rename). No API change.
