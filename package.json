@@ -1,6 +1,6 @@
 {
   "name": "openvibe-publishing",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Shared publishing packages for the OpenVibe publication products: revisions, scheduling, taxonomy, citations, media attachments, discussion references, the SEO indexability gate, authorship, index hooks and SSR helpers. Packages, not an authority.",
   "main": "index.js",
   "exports": {
@@ -36,7 +36,7 @@
   "homepage": "https://github.com/OpenVibers/OpenVibe.Publishing#readme",
   "license": "MIT",
   "dependencies": {
-    "openvibe-shared": "https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v1.10.0"
+    "openvibe-shared": "https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v1.11.0"
   },
   "peerDependencies": {
     "better-sqlite3": ">=11"
