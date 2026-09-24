@@ -21,7 +21,7 @@ jobs:
         run: |
           git archive --format=tar.gz --prefix=OpenVibe.Publishing-ci/ -o "$RUNNER_TEMP/openvibe-publishing.tgz" HEAD
           mkdir "$RUNNER_TEMP/consumer" && cd "$RUNNER_TEMP/consumer" && npm init -y >/dev/null
-          npm install --no-audit --no-fund "$RUNNER_TEMP/openvibe-publishing.tgz" better-sqlite3@11
+          npm install --no-audit --no-fund "$RUNNER_TEMP/openvibe-publishing.tgz" better-sqlite3@11 https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v1.12.0   # peers: the product provides both
           node -e "
             const p = require('openvibe-publishing');
             for (const m of ['revisions','schedule','taxonomy','citations','media','discussion','seo','authorship','index-hooks','ssr']) require('openvibe-publishing/' + m);
