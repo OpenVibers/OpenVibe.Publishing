@@ -4,6 +4,10 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 0.3.1 — 2026-09-24
+
+Depends on openvibe-shared v1.10.0 (was v1.5.1). Every product pinning the same Shared release now installs one copy instead of a nested one. No API change.
+
 ## 0.3.0 — 2026-09-24
 
 - `openvibe-publishing/ai`: how a content product asks OpenVibe.AI for a draft. `createAiClient({
