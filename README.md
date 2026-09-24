@@ -39,6 +39,7 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/seo` | The deterministic **indexability gate**; canonical URLs; history-aware redirects (old slug → 301, gone → 410); meta/robots tags; sitemaps; RSS, Atom and JSON Feed; JSON-LD built only from provided fields | `<prefix>_redirects` |
 | `openvibe-publishing/authorship` | human / ai / hybrid / imported records with the OpenVibe.AI workflow + run id, disclosure labels, AI content held as draft + noindex until a person's review | `<prefix>_reviews` |
 | `openvibe-publishing/index-hooks` | `search.index-document@1` documents and tombstones, the `<owner>.index_document.upserted\|deleted` events OpenVibe.Search consumes, a monotonic index-revision sequencer, and the product's own `<product>.<type>.published\|updated\|unpublished\|deleted` events | `<prefix>_index_revisions` |
+| `openvibe-publishing/ai` | Ask OpenVibe.AI for a draft: run a registered workflow with the product's service token (polls a slow run), read its citations, get the `{ id, version, runId, model }` an AI authorship record needs; coded `AiRunError`s, never a partial draft | — |
 | `openvibe-publishing/ssr` | auto-escaping `html` tagged templates with `raw()`, a safe Markdown subset, plain-text extraction, word count, server pagination, breadcrumbs, diff markup, honest `<time>` | — |
 
 `require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`, …).

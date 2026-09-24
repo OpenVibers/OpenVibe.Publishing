@@ -4,6 +4,15 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 0.3.0 — 2026-09-24
+
+- `openvibe-publishing/ai`: how a content product asks OpenVibe.AI for a draft. `createAiClient({
+  baseUrl, tokenClient })` runs a registered workflow (`POST /api/v1/runs?wait=`, polling a run still
+  going), reads its citations, and returns the output with the `{ id, version, runId, model }` an
+  AI authorship record needs. Failures throw `AiRunError` with a code (`ai.not_configured`,
+  `ai.refused`, `ai.run_failed`, `ai.timeout`, `ai.unreachable`), never a partial draft; a refused
+  token is invalidated and retried once; a traceparent passed in goes along. Additive.
+
 ## 0.2.2 — 2026-09-24
 
 - `openvibe-shared` v1.0.0 -> v1.5.1 (the runtime dependency; `seo` is unchanged, so consumers that

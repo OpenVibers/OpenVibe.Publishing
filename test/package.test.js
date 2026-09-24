@@ -12,7 +12,7 @@ const SUBPATHS = Object.keys(pkg.exports).filter((k) => k !== '.' && k !== './pa
 
 test('every subpath export resolves to an existing module', () => {
     assert.deepStrictEqual(SUBPATHS.map((s) => s.slice(2)).sort(),
-        ['authorship', 'citations', 'discussion', 'index-hooks', 'media', 'revisions', 'schedule', 'seo', 'ssr', 'taxonomy']);
+        ['ai', 'authorship', 'citations', 'discussion', 'index-hooks', 'media', 'revisions', 'schedule', 'seo', 'ssr', 'taxonomy']);
     for (const s of SUBPATHS) assert.ok(require(`openvibe-publishing/${s.slice(2)}`), s);
 });
 
@@ -36,7 +36,7 @@ test('the root export is lazy and exposes every module', () => {
     assert.strictEqual(out.before, 0);
     assert.ok(out.after > 0);
     assert.strictEqual(out.v, pkg.version);
-    assert.deepStrictEqual(out.names.sort(), ['PublishingError', 'authorship', 'citations', 'discussion', 'indexHooks', 'media', 'revisions', 'schedule', 'seo', 'ssr', 'taxonomy', 'version']);
+    assert.deepStrictEqual(out.names.sort(), ['PublishingError', 'ai', 'authorship', 'citations', 'discussion', 'indexHooks', 'media', 'revisions', 'schedule', 'seo', 'ssr', 'taxonomy', 'version']);
 });
 
 test('the package owns no runtime: no listen(), no database file, no env config in lib/', () => {
