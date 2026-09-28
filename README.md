@@ -3,13 +3,29 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, 0.2.1 (roadmap Wave 15). The modules are tested and the exit proof
-(`examples/two-products`) runs in `npm test`. v0.1.0, v0.2.0 and v0.2.1 (a Markdown
-ReDoS fix — see [CHANGELOG.md](CHANGELOG.md)) are tagged; CI is green on v0.2.1. Seven products pin
-v0.2.1 and run it in production: Wiki and Blog (public at openvibe.wiki and openvibe.blog) and News,
+**Status:** alpha, 0.4.0 (roadmap Wave 15). The modules are tested and the exit proof
+(`examples/two-products`) runs in `npm test`. Releases v0.1.0 to v0.4.0 are tagged (see
+[CHANGELOG.md](CHANGELOG.md): the `ai` module in v0.3.0, openvibe-shared as a peer dependency in
+v0.4.0). Seven products pin v0.4.0: Wiki and Blog (public at openvibe.wiki and openvibe.blog) and News,
 Reviews, Deals, Coupons and Trade (deployed loopback-only on the host, not launched).
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.
+
+## Purpose
+
+One implementation of how the publication products publish: revisions, scheduling, taxonomy,
+citations, media references, discussion references, the indexability gate, feeds and sitemaps,
+authorship and AI disclosure, Search documents and server-rendered HTML. Each product keeps its own
+state and rules; this repository keeps the code they share.
+
+## Owns
+
+- the modules below and the table layouts they create, with the product's prefix, inside the
+  product's own database
+- the indexability gate's rules and its stable reason codes (`seo.REASONS`)
+- the shape of the documents and envelopes the products send to OpenVibe.Search and OpenVibe.Events
+
+It owns no state: no runtime, port, domain or database of its own (next section).
 
 ## The rule: packages, not an authority
 
@@ -49,12 +65,14 @@ Every module is its own entry point and can be used alone.
 Pin the release tarball, like every OpenVibe package (never a `file:` link or a vendored copy):
 
 ```json
-"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v0.2.1"
+"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v0.4.0"
 ```
 
-`better-sqlite3` (≥ 11) is a peer dependency: the product brings its own handle. The only runtime
-dependency is `openvibe-shared` (v1.5.1), whose `seo` module is the network's single implementation
-of head tags, sitemap XML, robots.txt and JSON-LD escaping; this package adds the publication rules on top.
+`better-sqlite3` (≥ 11) and `openvibe-shared` (≥ 1.5.0) are peer dependencies, resolved from the
+product's own install (the product brings its own database handle, and one copy of openvibe-shared).
+openvibe-shared's `seo` module is the network's single implementation of head tags, sitemap XML,
+robots.txt and JSON-LD escaping; this package adds the publication rules on top. There are no other
+runtime dependencies.
 
 ## The indexability gate
 
@@ -124,7 +142,7 @@ outbox.enqueue(hooks.indexEvent({ document: doc }));   // wiki.index_document.up
 URL, publication state, indexability; public only for public, listable content). Neither sets
 `event_id`: the OpenVibe.Events outbox assigns it. Enqueue both in the same transaction as the
 product's state change. Tests validate every document and envelope with openvibe-contracts
-v0.33.0 and mirror Search's webhook checks.
+v0.49.0 and mirror Search's webhook checks.
 
 ## Exit proof: two products
 
@@ -137,6 +155,39 @@ database holds only its own product's tables, that writes never cross, and that 
 without JavaScript, old slugs 301, private/VIP/deleted content leaves feeds and sitemaps, and
 scheduled publication survives a worker restart.
 
+## Capabilities
+
+The package implements no capability and holds no grant. Three modules call a service with the
+**product's** token client, so the product needs the grant: `discussion` calls OpenVibe.Community
+(`community.comment.write` to resolve a thread), `ai` calls OpenVibe.AI (`ai.run.create`,
+`ai.run.read`) and `media`'s `verify()` reads OpenVibe.Media objects (`media.object.read`).
+
+## Acceptance
+
+`npm test` runs every `test/*.test.js` on temp databases with no network. What it proves: immutable
+revisions, diff and revert (`revisions.test.js`); idempotent scheduling across worker restarts
+(`schedule.test.js`); append-only citations (`citations.test.js`); honest media states
+(`media.test.js`); discussion references without content (`discussion.test.js`); the gate, structured
+data and feeds built only from given fields (`seo.test.js`); AI content held until a person's review
+(`authorship.test.js`, `ai.test.js`); Search documents and envelopes valid against openvibe-contracts
+(`index-hooks.test.js`); escaping and the Markdown subset, including the ReDoS fix (`ssr.test.js`);
+every subpath export loading alone (`package.test.js`); and the two-product exit proof
+(`two-products.test.js`).
+
+## Security
+
+Reporting a vulnerability: [SECURITY.md](SECURITY.md). The `ssr` module auto-escapes every value in
+its `html` templates and renders only a safe Markdown subset (linear-time since v0.2.1's ReDoS fix);
+JSON-LD is escaped by openvibe-shared. The package holds no secrets, opens no database it was not
+handed, and makes network calls only through the token client and base URL a product passes in. A
+product that bypasses its own checks is not stopped by the package (see Honesty guarantees).
+
+## Deploy
+
+Nothing is deployed from this repository. A release is a git tag (`vX.Y.Z`, recorded in
+[CHANGELOG.md](CHANGELOG.md)); products pin the tag's tarball and ship it with their own deploys
+(`sudo ovhost deploy <product>`). A bad release is undone by the products pinning the previous tag.
+
 ## Development
 
 ```bash
@@ -144,7 +195,7 @@ fnm exec --using=22.22.1 npm install
 fnm exec --using=22.22.1 npm test          # every test/*.test.js, temp databases, no network
 ```
 
-## What it does not do
+## Does not own
 
 - It does not own publication state, run workers, listen on a port, or talk to a database it was not handed.
 - It does not decide editorial rules: each product passes its own gate policy and its own permission checks.
@@ -154,8 +205,8 @@ fnm exec --using=22.22.1 npm test          # every test/*.test.js, temp database
 
 ## Depends on
 
-- `openvibe-shared` v1.5.1 (`seo`), at runtime.
+- `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v1.22.0).
 - `better-sqlite3` ≥ 11, supplied by the consumer.
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
-  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.33.0, a
+  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.49.0, a
   devDependency: nothing in `lib/` needs it at runtime).
