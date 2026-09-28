@@ -205,7 +205,7 @@ fnm exec --using=22.22.1 npm test          # every test/*.test.js, temp database
 
 ## Depends on
 
-- `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v1.22.0).
+- `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v1.25.0).
 - `better-sqlite3` ≥ 11, supplied by the consumer.
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
   and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.49.0, a
