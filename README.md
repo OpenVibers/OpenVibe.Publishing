@@ -3,11 +3,14 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, 0.4.0 (roadmap Wave 15). The modules are tested and the exit proof
-(`examples/two-products`) runs in `npm test`. Releases v0.1.0 to v0.4.0 are tagged (see
-[CHANGELOG.md](CHANGELOG.md): the `ai` module in v0.3.0, openvibe-shared as a peer dependency in
-v0.4.0). Seven products pin v0.4.0: Wiki and Blog (public at openvibe.wiki and openvibe.blog) and News,
-Reviews, Deals, Coupons and Trade (deployed loopback-only on the host, not launched).
+**Status:** alpha, **1.0.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
+layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
+async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
+store gives its DDL as `schema(prefix)` for the product's migrations. The exit proof
+(`examples/two-products`) runs in `npm test`. Releases v0.1.0 to v1.0.0 are tagged (see
+[CHANGELOG.md](CHANGELOG.md)). The seven products (Wiki and Blog, public at openvibe.wiki and
+openvibe.blog; News, Reviews, Deals, Coupons and Trade, deployed loopback-only, not launched) still pin
+v0.4.x on SQLite; each moves to 1.x in its own PostgreSQL migration.
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.
 
@@ -20,8 +23,8 @@ state and rules; this repository keeps the code they share.
 
 ## Owns
 
-- the modules below and the table layouts they create, with the product's prefix, inside the
-  product's own database
+- the modules below and their table layouts (the DDL each gives as `schema(prefix)`), with the
+  product's prefix, inside the product's own database
 - the indexability gate's rules and its stable reason codes (`seo.REASONS`)
 - the shape of the documents and envelopes the products send to OpenVibe.Search and OpenVibe.Events
 
@@ -31,10 +34,11 @@ It owns no state: no runtime, port, domain or database of its own (next section)
 
 This repository is **code, never state**. It has no runtime, no port, no domain, no database and
 no API of its own, and it must never get one. Each product (Wiki, Blog, News, …) owns its
-publication state in its own database; these modules take the product's `better-sqlite3` handle
-and a table prefix, and create `<prefix>_…` tables *inside that product's database*. Two products
-share the code, not the data: `wiki.db` holds `wiki_*` tables, `blog.db` holds `blog_*` tables,
-and nothing is shared between them (proved by [test/two-products.test.js](test/two-products.test.js)).
+publication state in its own database; these modules take the product's `openvibe-sdk/db` handle
+and a table prefix, and use `<prefix>_…` tables *inside that product's database* (the product's
+migrations create them from `schema(prefix)`). Two products share the code, not the data: the wiki's
+database holds `wiki_*` tables, the blog's holds `blog_*` tables, and nothing is shared between them
+(proved by [test/two-products.test.js](test/two-products.test.js)).
 
 Following the plan (§12.4, §31.1, §31.5): share *how* something is done (revisions, the gate,
 feeds, indexing); never share *what is true* (which revision is live, who may read it, editorial
@@ -58,21 +62,129 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/ai` | Ask OpenVibe.AI for a draft: run a registered workflow with the product's service token (polls a slow run), read its citations, get the `{ id, version, runId, model }` an AI authorship record needs; coded `AiRunError`s, never a partial draft | — |
 | `openvibe-publishing/ssr` | auto-escaping `html` tagged templates with `raw()`, a safe Markdown subset, plain-text extraction, word count, server pagination, breadcrumbs, diff markup, honest `<time>` | — |
 
-`require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`, …).
+`require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`, …),
+plus `schema({ … })`, the DDL of several stores at once (below).
 
 ## Install
 
 Pin the release tarball, like every OpenVibe package (never a `file:` link or a vendored copy):
 
 ```json
-"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v0.4.0"
+"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.0.0",
+"openvibe-sdk": "https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.15.0",
+"pg": "^8.23.0"
 ```
 
-`better-sqlite3` (≥ 11) and `openvibe-shared` (≥ 1.5.0) are peer dependencies, resolved from the
-product's own install (the product brings its own database handle, and one copy of openvibe-shared).
-openvibe-shared's `seo` module is the network's single implementation of head tags, sitemap XML,
-robots.txt and JSON-LD escaping; this package adds the publication rules on top. There are no other
-runtime dependencies.
+and `@electric-sql/pglite` (`^0.5.8`) as a devDependency for tests. `openvibe-sdk` (≥ 0.15.0) and
+`openvibe-shared` (≥ 1.5.0) are peer dependencies, resolved from the product's own install: the
+product brings its own database handle, so there is one copy of the data layer (and of its pool) per
+service, and one copy of openvibe-shared. openvibe-shared's `seo` module is the network's single
+implementation of head tags, sitemap XML, robots.txt and JSON-LD escaping; this package adds the
+publication rules on top. There are no other runtime dependencies; `lib/` never loads a driver.
+
+## Using the stores on PostgreSQL
+
+**The handle.** Every store takes the product's `openvibe-sdk/db` handle and a prefix. Creating a
+store runs no query; every method that touches data is `async`.
+
+```js
+const { createDb, sql } = require('openvibe-sdk/db');
+const { createRevisionStore } = require('openvibe-publishing/revisions');
+const { createCitationStore } = require('openvibe-publishing/citations');
+
+const db = createDb({ service: 'wiki' });                          // DATABASE_URL, through PgBouncer
+const revisions = createRevisionStore(db, { prefix: 'wiki_page' });
+const citations = createCitationStore(db, { prefix: 'wiki', revisions });
+const { revision } = await revisions.create({ entityId: 'pg_1', expectedRevision: 0, content: '# Rye', fields: { title: 'Rye' } });
+```
+
+**The schema goes in the product's migrations.** The runtime role behind PgBouncer cannot create
+tables, so the stores never do it on their own. Each storing module exports its DDL for a prefix, and
+the root export joins several; write the text into the product's first migration once:
+
+```js
+const publishing = require('openvibe-publishing');
+const ddl = publishing.schema({ revisions: 'wiki_page', citations: 'wiki', seo: 'wiki_page', authorship: 'wiki_page', indexHooks: 'wiki' });
+// migrations/0001_initial.sql = '-- phase: expand
+' + the product's own tables + ddl
+// then at boot, as the owner: await createDb({ url: process.env.DATABASE_DIRECT_URL }).migrate({ dir })
+```
+
+| Module | DDL function | Tables |
+|---|---|---|
+| revisions | `schema(prefix)` | `<prefix>_revisions`, `<prefix>_drafts`, `<prefix>_revision_purges` + guard trigger |
+| citations | `schema(prefix)` | `<prefix>_citations`, `<prefix>_citation_purges` + guard trigger |
+| media | `schema(prefix)` | `<prefix>_attachments` |
+| discussion | `schema(prefix)` | `<prefix>_discussion_refs` |
+| schedule | `schema(prefix)` | `<prefix>_schedule_jobs` |
+| authorship | `schema(prefix)` (the review log) | `<prefix>_reviews` + guard trigger |
+| taxonomy | `schema(prefix)` | `<prefix>_terms`, `<prefix>_term_links` |
+| seo | `redirectsSchema(prefix)` | `<prefix>_redirects` |
+| index-hooks | `sequencerSchema(prefix)` | `<prefix>_index_revisions` |
+
+Every store also has `store.schema()` (the same text) and `await store.ensureSchema()`, which runs it
+on the handle: for tests and PGlite, where the handle may create tables. The text is idempotent
+(`IF NOT EXISTS`, `CREATE OR REPLACE`), uses PostgreSQL types (`bigint` identity keys, `jsonb` for
+JSON, `bigint` epoch milliseconds where 0.4 stored milliseconds, `timestamptz` for citations'
+`retrieved_at`, `COLLATE "C"` on identifier columns so they sort in byte order as SQLite did), keeps
+0.4's CHECK constraints, and has an index for every query a store sends (`test/schema.test.js`
+checks each one with EXPLAIN). When a later release changes a store's DDL, its CHANGELOG entry gives
+the migration a product adds; an applied migration is never edited.
+
+**Transaction handles.** Every data method takes an optional transaction handle as its **first**
+argument. Without one it runs on the store's `db`; with one it runs inside the caller's
+transaction, so a product's own write and the stores' writes commit together or not at all:
+
+```js
+await db.tx(async (t) => {
+    await t.exec(sql`INSERT INTO wiki_pages (id, slug, owner, updated_at) VALUES (${id}, ${slug}, ${owner}, ${Date.now()})`);
+    const { revision } = await revisions.create(t, { entityId: id, expectedRevision: 0, content, fields: { title } });
+    await citations.attachMany(t, id, revision.number, sources);
+});
+```
+
+Inside `db.tx`, pass `t` to every store call, reads included: a read on `db` would not see the
+transaction's writes (and on PGlite, one connection, it waits for the transaction). A store write
+that needs several statements runs them in its own transaction, or in a savepoint of the caller's
+(`t.tx`); a store refusal (a 412 conflict, a 404, a 410) is raised before or after a clean savepoint,
+so the caller can catch it and still commit the rest. `indexSequencer.stamp(t, document)` takes the
+handle **always**, like the SDK outbox's `enqueue(t, …)`: the stamped revision must commit if and
+only if the event carrying it does.
+
+**Concurrency.** Writers of one entity take a transaction-scoped advisory lock
+(`pg_advisory_xact_lock`, allowed behind PgBouncer), so revisions' and citations' check-then-write,
+purges and `setTerms` behave as they did under SQLite's single writer: racing writers of one base
+revision get exactly one success and 412s, and nothing written during a purge survives it. The
+scheduler claims with `FOR UPDATE SKIP LOCKED` in one statement, so any number of workers on any
+number of hosts share one jobs table without taking a job twice. Get-or-create paths use
+`ON CONFLICT`. `test/postgres.test.js` races all of these through PgBouncer.
+
+**Lists are bounded; several reads are one query.** Every list method has a `limit` (defaults keep
+0.4's answers for normal sizes), and lists that grow across entities page by keyset (`after`):
+`citations.bySourceItem`, `media.entitiesUsing`, `taxonomy.entitiesFor` and `taxonomy.terms`
+(revisions' `list` keeps its `before` cursor). For a feed or sitemap, read in batches instead of per
+item: `revisions.getMany(refs)`, `citations.forRevisions(refs)`, `reviews.latestMany(refs)` and
+`taxonomy.termsForMany(entityIds)` (refs are `{ entityId, revision }`; answers come back in the same
+order).
+
+**Tests.** `createDb({ pglite: true })`, then `await store.ensureSchema()` (or `db.migrate({ dir })`
+with the product's migrations): real PostgreSQL in-process.
+
+## Moving a product from 0.4 to 1.0
+
+Mostly mechanical; [CHANGELOG.md](CHANGELOG.md) lists every change. In short:
+
+1. Pin `openvibe-publishing` v1.0.0, `openvibe-sdk` v0.15.0 and `pg`; `@electric-sql/pglite` for tests.
+2. Put `publishing.schema({ … })` for the stores and prefixes the product uses into its
+   `migrations/0001_initial.sql` (with its own tables), so the SDK's `importSqlite` finds every table
+   when it moves the SQLite data.
+3. Pass the `openvibe-sdk/db` handle instead of the better-sqlite3 one, and `await` every store call.
+4. Replace `db.transaction(() => { … })()` around store calls with `await db.tx(async (t) => { … })`
+   and pass `t` as the first argument of every store call inside it.
+5. Beyond `await`: `stamp(t, doc)` takes the handle first; `redirects.resolve()`'s `currentPath`
+   may be async (and should be); rows come back with parsed JSON (`fields`, `meta`, `ref`, `result`)
+   exactly as the store shapes already returned them; list methods cap at their `limit`; loops of
+   per-item reads in list routes become the batch reads above.
 
 ## The indexability gate
 
@@ -108,7 +220,8 @@ published document) all require the decision, so an object without one cannot re
 - **Feeds and sitemaps** never invent `pubDate`, `lastmod` or authors; an Atom entry without any date
   is left out rather than dated "now".
 - **Citations** never get a retrieval time they did not have, and cannot be edited or deleted
-  (SQLite triggers) except by an audited purge.
+  (a PL/pgSQL trigger, SQLSTATE 23001) except by an audited purge. Revisions are guarded the same way;
+  review-log rows cannot be updated.
 - **Media** outages are `check_failed`, not "gone" and not "fine".
 - **Discussion** failures are errors, never a fabricated thread.
 - **AI content** starts as draft + noindex: `authorship.canPublish()` refuses it and the gate hides it
@@ -132,8 +245,10 @@ tombstone win ties, so the revision must rise with every indexed change, not onl
 
 ```js
 const seq = hooks.createIndexSequencer(db, { prefix: 'wiki' });
-const doc = seq.stamp(hooks.buildIndexDocument({ owner: 'wiki', type: 'page', id, revision: 0, state, visibility, … , decision }));
-outbox.enqueue(hooks.indexEvent({ document: doc }));   // wiki.index_document.upserted | .deleted
+await db.tx(async (t) => {
+    const doc = await seq.stamp(t, hooks.buildIndexDocument({ owner: 'wiki', type: 'page', id, revision: 0, state, visibility, … , decision }));
+    await outbox.enqueue(t, hooks.indexEvent({ document: doc }));   // wiki.index_document.upserted | .deleted
+});
 ```
 
 `indexEvent()` builds the envelope Search's webhook consumes (payload = the document, or
@@ -147,13 +262,17 @@ v0.49.0 and mirror Search's webhook checks.
 ## Exit proof: two products
 
 [examples/two-products](examples/two-products) holds a mini wiki and a mini blog, each with its own
-SQLite file and its own publication tables, both using revisions, citations, the gate and feeds with
-different editorial policies. `node examples/two-products/wiki/app.js` (port 4801) and
-`node examples/two-products/blog/app.js` (port 4811) serve them on temp databases.
-[test/two-products.test.js](test/two-products.test.js) shows they load the same modules, that each
-database holds only its own product's tables, that writes never cross, and that pages are useful
-without JavaScript, old slugs 301, private/VIP/deleted content leaves feeds and sitemaps, and
-scheduled publication survives a worker restart.
+database (an `openvibe-sdk/db` handle) and its own publication tables, both using revisions,
+citations, the gate and feeds with different editorial policies. Each applies its
+`migrations/0001_initial.sql` (its own tables plus `publishing.schema({ … })`, generated by
+`examples/two-products/migrations.js`) with `db.migrate()`, as a service does.
+`node examples/two-products/wiki/app.js` (port 4801) and `node examples/two-products/blog/app.js`
+(port 4811) serve them on in-memory PGlite. [test/two-products.test.js](test/two-products.test.js)
+shows they load the same modules, that each database holds only its own product's tables, that
+writes never cross, that a product's write and the stores' writes share one transaction, that a feed
+of many pages costs the same queries as a feed of one, and that pages are useful without JavaScript,
+old slugs 301, private/VIP/deleted content leaves feeds and sitemaps, and scheduled publication
+survives a worker restart.
 
 ## Capabilities
 
@@ -164,23 +283,33 @@ The package implements no capability and holds no grant. Three modules call a se
 
 ## Acceptance
 
-`npm test` runs every `test/*.test.js` on temp databases with no network. What it proves: immutable
-revisions, diff and revert (`revisions.test.js`); idempotent scheduling across worker restarts
-(`schedule.test.js`); append-only citations (`citations.test.js`); honest media states
-(`media.test.js`); discussion references without content (`discussion.test.js`); the gate, structured
-data and feeds built only from given fields (`seo.test.js`); AI content held until a person's review
-(`authorship.test.js`, `ai.test.js`); Search documents and envelopes valid against openvibe-contracts
-(`index-hooks.test.js`); escaping and the Markdown subset, including the ReDoS fix (`ssr.test.js`);
-every subpath export loading alone (`package.test.js`); and the two-product exit proof
-(`two-products.test.js`).
+`npm test` runs every `test/*.test.js` on real PostgreSQL in-process (PGlite, one fresh schema per
+test) with no network. What it proves: immutable revisions, diff and revert, keyset lists, drafts in
+one query (`revisions.test.js`); idempotent scheduling across worker restarts, concurrent claims
+(`schedule.test.js`); append-only citations, batched inserts (`citations.test.js`); honest media
+states (`media.test.js`); discussion references without content (`discussion.test.js`); the gate,
+redirects, structured data and feeds built only from given fields (`seo.test.js`); AI content held
+until a person's review (`authorship.test.js`, `ai.test.js`); Search documents and envelopes valid
+against openvibe-contracts, and `stamp(t, …)` committing with its event (`index-hooks.test.js`);
+escaping and the Markdown subset, including the ReDoS fix (`ssr.test.js`); every subpath export loading
+alone without a driver (`package.test.js`); the DDL: idempotent, 63-byte names, PostgreSQL types,
+CHECKs, PL/pgSQL guards, applied by `db.migrate()`, and an index under every query the stores send
+(`schema.test.js`); callers' transactions spanning store writes, rollbacks leaving nothing, savepoints
+(`transactions.test.js`); and the two-product exit proof (`two-products.test.js`).
+`test/postgres.test.js` runs the stores on PostgreSQL 18 through PgBouncer (transaction mode) when
+`OV_TEST_PG_URL` is set: racing writers, a purge racing writes, racing workers, racing get-or-create and
+`setTerms`, and callers' transactions behind the pooler; otherwise it prints
+`postgresql+pgbouncer: skipped (…)`. CI starts the containers, so it always runs there.
 
 ## Security
 
 Reporting a vulnerability: [SECURITY.md](SECURITY.md). The `ssr` module auto-escapes every value in
 its `html` templates and renders only a safe Markdown subset (linear-time since v0.2.1's ReDoS fix);
 JSON-LD is escaped by openvibe-shared. The package holds no secrets, opens no database it was not
-handed, and makes network calls only through the token client and base URL a product passes in. A
-product that bypasses its own checks is not stopped by the package (see Honesty guarantees).
+handed, and makes network calls only through the token client and base URL a product passes in. Every
+value reaches PostgreSQL as a bind parameter (the `sql` tag); the only identifiers in statements are
+the validated prefix's table names. A product that bypasses its own checks is not stopped by the
+package (see Honesty guarantees).
 
 ## Deploy
 
@@ -192,7 +321,9 @@ Nothing is deployed from this repository. A release is a git tag (`vX.Y.Z`, reco
 
 ```bash
 fnm exec --using=22.22.1 npm install
-fnm exec --using=22.22.1 npm test          # every test/*.test.js, temp databases, no network
+fnm exec --using=22.22.1 npm test          # every test/*.test.js on PGlite, no network
+# with PostgreSQL 18 + PgBouncer containers (what CI runs):
+eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --using=22.22.1 npm test
 ```
 
 ## Does not own
@@ -205,8 +336,11 @@ fnm exec --using=22.22.1 npm test          # every test/*.test.js, temp database
 
 ## Depends on
 
+- `openvibe-sdk` ≥ 0.15.0 (`openvibe-sdk/db`), a peer dependency supplied by the consumer: its
+  `createDb` handle (and `pg` in production, `@electric-sql/pglite` in tests) reach the stores through
+  the product. Tests pin v0.15.0.
+- PostgreSQL 18 (through PgBouncer in transaction mode), the product's own database (ADR-035).
 - `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v1.25.0).
-- `better-sqlite3` ≥ 11, supplied by the consumer.
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
   and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.49.0, a
   devDependency: nothing in `lib/` needs it at runtime).

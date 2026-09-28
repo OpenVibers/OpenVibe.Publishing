@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('assert');
-const { openDb, fakeClock, suite } = require('./helpers/db');
+const { openDb, fakeClock, suite, sql } = require('./helpers/db');
 const authorship = require('../lib/authorship');
 const seo = require('../lib/seo');
 
@@ -23,25 +23,26 @@ test('records: ai/hybrid need a workflow run, human cannot carry one', () => {
     assert.throws(() => authorship.record({ mode: 'human', authors: ['42'] }), /subject/);
 });
 
-test('AI-generated defaults to draft + noindex until a person reviews it', () => {
-    const db = openDb('auth');
-    const reviews = authorship.createReviewLog(db, { prefix: 'wiki_page', now: fakeClock() });
+test('AI-generated defaults to draft + noindex until a person reviews it', async () => {
+    const db = await openDb();
+    const reviews = await authorship.createReviewLog(db, { prefix: 'wiki_page', now: fakeClock() }).ensureSchema();
     const rec = authorship.record({ mode: 'ai', workflow: WF });
     assert.deepStrictEqual(authorship.initialState(rec), { state: 'draft', noindex: true, reason: 'ai_generated_unreviewed' });
     assert.deepStrictEqual(authorship.canPublish(rec), { ok: false, reason: 'ai_generated_unreviewed' });
-    const before = seo.evaluate(facts(authorship.gateFacts(rec, reviews.latest('pg', 1))));
+    const before = seo.evaluate(facts(authorship.gateFacts(rec, await reviews.latest('pg', 1))));
     assert.deepStrictEqual(before.codes, ['ai_generated_unreviewed']);
 
-    assert.throws(() => reviews.record({ entityId: 'pg', revision: 1, reviewer: 'svc:wiki', decision: 'approved' }), (e) => e.code === 'review.reviewer_not_person');
-    reviews.record({ entityId: 'pg', revision: 1, reviewer: USER, decision: 'rejected', note: 'wrong facts' });
-    assert.strictEqual(authorship.canPublish(rec, reviews.latest('pg', 1)).ok, false);
-    reviews.record({ entityId: 'pg', revision: 1, reviewer: USER, decision: 'approved' });
-    const review = reviews.latest('pg', 1);
+    await assert.rejects(reviews.record({ entityId: 'pg', revision: 1, reviewer: 'svc:wiki', decision: 'approved' }), (e) => e.code === 'review.reviewer_not_person');
+    await reviews.record({ entityId: 'pg', revision: 1, reviewer: USER, decision: 'rejected', note: 'wrong facts' });
+    assert.strictEqual(authorship.canPublish(rec, await reviews.latest('pg', 1)).ok, false);
+    await reviews.record({ entityId: 'pg', revision: 1, reviewer: USER, decision: 'approved' });
+    const review = await reviews.latest('pg', 1);
     assert.strictEqual(authorship.canPublish(rec, review).ok, true);
     assert.strictEqual(seo.evaluate(facts(authorship.gateFacts(rec, review))).indexable, true);
-    assert.strictEqual(reviews.latest('pg', 2), null, 'a review covers one revision only');
-    assert.strictEqual(reviews.history('pg').length, 2);
-    assert.throws(() => db.prepare("UPDATE wiki_page_reviews SET decision = 'approved'").run(), /immutable/);
+    assert.strictEqual(await reviews.latest('pg', 2), null, 'a review covers one revision only');
+    assert.strictEqual((await reviews.history('pg')).length, 2);
+    assert.strictEqual(reviews.table, 'wiki_page_reviews');
+    await assert.rejects(db.exec(sql`UPDATE wiki_page_reviews SET decision = 'approved'`), (e) => /immutable/.test(e.message) && e.code === '23001');
 });
 
 test('stub-provider output is held like AI output', () => {

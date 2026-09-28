@@ -102,26 +102,31 @@ test('canonicalUrl', () => {
     assert.throws(() => seo.canonicalUrl('ftp://x'), /http/);
 });
 
-test('history-aware redirects: every old slug 301s straight to the current path; gone → 410', () => {
-    const redirects = seo.createRedirectStore(openDb('seo'), { prefix: 'wiki_page', now: fakeClock() });
+test('history-aware redirects: every old slug 301s straight to the current path; gone → 410', async () => {
+    const redirects = await seo.createRedirectStore(await openDb(), { prefix: 'wiki_page', now: fakeClock() }).ensureSchema();
     const current = { pg_1: '/p/rye' };
     const currentPath = (id) => current[id] || null;
-    redirects.recordMove('pg_1', '/p/ryegrass', '/p/rye-grain');
-    redirects.recordMove('pg_1', '/p/rye-grain', '/p/rye');
-    assert.deepStrictEqual(redirects.resolve('/p/ryegrass', { currentPath }), { status: 301, location: '/p/rye', entityId: 'pg_1' });
-    assert.deepStrictEqual(redirects.resolve('/p/rye-grain/?x=1', { currentPath }), { status: 301, location: '/p/rye', entityId: 'pg_1' });
-    assert.strictEqual(redirects.resolve('/p/rye', { currentPath }), null);
-    assert.strictEqual(redirects.resolve('/p/unknown', { currentPath }), null);
+    await redirects.recordMove('pg_1', '/p/ryegrass', '/p/rye-grain');
+    await redirects.recordMove('pg_1', '/p/rye-grain', '/p/rye');
+    assert.deepStrictEqual(await redirects.resolve('/p/ryegrass', { currentPath }), { status: 301, location: '/p/rye', entityId: 'pg_1' });
+    assert.deepStrictEqual(await redirects.resolve('/p/rye-grain/?x=1', { currentPath }), { status: 301, location: '/p/rye', entityId: 'pg_1' });
+    assert.strictEqual(await redirects.resolve('/p/rye', { currentPath }), null);
+    assert.strictEqual(await redirects.resolve('/p/unknown', { currentPath }), null);
     // renamed back to an old slug: that slug is live again and must not redirect
-    redirects.recordMove('pg_1', '/p/rye', '/p/ryegrass');
+    await redirects.recordMove('pg_1', '/p/rye', '/p/ryegrass');
     current.pg_1 = '/p/ryegrass';
-    assert.strictEqual(redirects.resolve('/p/ryegrass', { currentPath }), null);
-    assert.deepStrictEqual(redirects.resolve('/p/rye', { currentPath }).location, '/p/ryegrass');
-    assert.deepStrictEqual(redirects.history('pg_1').map((h) => h.path).sort(), ['/p/rye', '/p/rye-grain']);
+    assert.strictEqual(await redirects.resolve('/p/ryegrass', { currentPath }), null);
+    assert.deepStrictEqual((await redirects.resolve('/p/rye', { currentPath })).location, '/p/ryegrass');
+    assert.deepStrictEqual((await redirects.history('pg_1')).map((h) => h.path).sort(), ['/p/rye', '/p/rye-grain']);
+    // currentPath may be async (the product's own lookup)
+    assert.deepStrictEqual((await redirects.resolve('/p/rye', { currentPath: async (id) => current[id] })).location, '/p/ryegrass');
     delete current.pg_1;
-    assert.deepStrictEqual(redirects.resolve('/p/rye', { currentPath }), { status: 410, entityId: 'pg_1' });
+    assert.deepStrictEqual(await redirects.resolve('/p/rye', { currentPath }), { status: 410, entityId: 'pg_1' });
     assert.strictEqual(redirects.table, 'wiki_page_redirects');
-    assert.throws(() => redirects.recordMove('pg_1', 'no-slash', '/x'), /start with/);
+    await assert.rejects(redirects.recordMove('pg_1', 'no-slash', '/x'), /start with/);
+    assert.strictEqual(await redirects.release('/p/rye'), true);
+    assert.strictEqual(await redirects.release('/p/rye'), false);
+    assert.strictEqual(await redirects.resolve('/p/rye', { currentPath }), null);
 });
 
 // ---- meta tags ---------------------------------------------------------------------------------

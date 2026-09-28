@@ -4,7 +4,7 @@ const contracts = require('openvibe-contracts');
 const hooks = require('../lib/index-hooks');
 const seo = require('../lib/seo');
 const authorship = require('../lib/authorship');
-const { openDb, fakeClock, suite } = require('./helpers/db');
+const { openDb, fakeClock, suite, sql } = require('./helpers/db');
 
 const { test, run } = suite();
 const USER = 'usr_01J8Z6Q3KX0000000000000000';
@@ -142,20 +142,43 @@ test('index events are what Search consumes: <owner>.index_document.upserted|del
     assert.throws(() => hooks.indexEvent({}), /document/);
 });
 
-test('the sequencer bumps the index revision on every indexed change and replays unchanged documents', () => {
-    const seq = hooks.createIndexSequencer(openDb('idx'), { prefix: 'wiki', now: fakeClock() });
-    const a = seq.stamp(hooks.buildIndexDocument(input({ revision: 0 })));
+test('the sequencer bumps the index revision on every indexed change and replays unchanged documents', async () => {
+    const db = await openDb();
+    const seq = await hooks.createIndexSequencer(db, { prefix: 'wiki', now: fakeClock() }).ensureSchema();
+    const a = await seq.stamp(db, hooks.buildIndexDocument(input({ revision: 0 })));
     assert.strictEqual(a.revision, 1);
-    assert.strictEqual(seq.stamp(hooks.buildIndexDocument(input({ revision: 0 }))).revision, 1, 'same document, same revision');
-    const priv = seq.stamp(hooks.buildIndexDocument(input({ revision: 0, visibility: 'private', acl: { subjects: [USER] }, decision: decisionFor({ visibility: 'private' }) })));
+    assert.strictEqual((await seq.stamp(db, hooks.buildIndexDocument(input({ revision: 0 })))).revision, 1, 'same document, same revision');
+    const priv = await seq.stamp(db, hooks.buildIndexDocument(input({ revision: 0, visibility: 'private', acl: { subjects: [USER] }, decision: decisionFor({ visibility: 'private' }) })));
     assert.strictEqual(priv.revision, 2, 'a visibility change with the same content still gets a new revision');
-    const gone = seq.stamp(hooks.tombstone({ owner: 'wiki', type: 'page', id: 'pg_1', revision: 0 }));
+    const gone = await seq.stamp(db, hooks.tombstone({ owner: 'wiki', type: 'page', id: 'pg_1', revision: 0 }));
     assert.strictEqual(gone.revision, 3);
-    const back = seq.stamp(hooks.buildIndexDocument(input({ revision: 0 })));
+    const back = await seq.stamp(db, hooks.buildIndexDocument(input({ revision: 0 })));
     assert.strictEqual(back.revision, 4, 'a restore outranks the tombstone');
-    assert.strictEqual(seq.current('wiki', 'page', 'pg_1'), 4);
+    assert.strictEqual(await seq.current('wiki', 'page', 'pg_1'), 4);
+    assert.strictEqual(await seq.current('wiki', 'page', 'nope'), null);
     valid(back);
     assert.strictEqual(seq.table, 'wiki_index_revisions');
+    // a higher revision asked for is kept; the counter never goes back
+    assert.strictEqual((await seq.stamp(db, hooks.buildIndexDocument(input({ revision: 10, title: 'Rye!' })))).revision, 10);
+    assert.strictEqual((await seq.stamp(db, hooks.buildIndexDocument(input({ revision: 2, title: 'Rye?' })))).revision, 11);
+});
+
+test('stamp() takes the transaction handle first: the revision commits with the event or not at all', async () => {
+    const db = await openDb();
+    const seq = await hooks.createIndexSequencer(db, { prefix: 'wiki', now: fakeClock() }).ensureSchema();
+    await db.query('CREATE TABLE wiki_outbox (id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY, envelope jsonb NOT NULL)');
+    await assert.rejects(seq.stamp(hooks.buildIndexDocument(input({ revision: 0 }))), /transaction handle/);
+    const send = (doc, fail) => db.tx(async (t) => {
+        const stamped = await seq.stamp(t, doc);
+        await t.exec(sql`INSERT INTO wiki_outbox (envelope) VALUES (${sql.json(hooks.indexEvent({ document: stamped }))})`);
+        if (fail) throw new Error('relay refused');
+        return stamped;
+    });
+    await assert.rejects(send(hooks.buildIndexDocument(input({ revision: 0 })), true), /relay refused/);
+    assert.strictEqual(await seq.current('wiki', 'page', 'pg_1'), null, 'rolled back with the event');
+    assert.strictEqual(await db.value(sql`SELECT count(*) FROM wiki_outbox`), 0);
+    assert.strictEqual((await send(hooks.buildIndexDocument(input({ revision: 0 })))).revision, 1);
+    assert.strictEqual(await db.value(sql`SELECT count(*) FROM wiki_outbox`), 1);
 });
 
 test('actionFor maps state transitions to product events', () => {

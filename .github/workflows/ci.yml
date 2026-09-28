@@ -8,19 +8,27 @@ jobs:
   test:
     uses: OpenVibers/OpenVibe.Shared/.github/workflows/test.yml@66b76f868ea8228aad7811309eafef3726b036f3
     with:
-      syntax-dirs: lib
-      # A consumer installs the package from a tag-style tarball and loads every module.
+      syntax-dirs: lib examples test
+      # The suite on PGlite, plus test/postgres.test.js against PostgreSQL 18 + PgBouncer (transaction mode)
+      # containers started by the openvibe-sdk devDependency's script (ADR-035).
+      test: 'eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && npm test'
+      # A consumer installs the package from a tag-style tarball next to openvibe-sdk and loads every module.
       extra: |
         git archive --format=tar.gz --prefix=OpenVibe.Publishing-ci/ -o "$RUNNER_TEMP/openvibe-publishing.tgz" HEAD
         mkdir "$RUNNER_TEMP/consumer" && cd "$RUNNER_TEMP/consumer" && npm init -y >/dev/null
-        npm install --no-audit --no-fund "$RUNNER_TEMP/openvibe-publishing.tgz" better-sqlite3@11 https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v1.13.0
+        npm install --no-audit --no-fund "$RUNNER_TEMP/openvibe-publishing.tgz" https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.15.0 @electric-sql/pglite@^0.5.8 https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v1.25.0
         node -e "
-          const p = require('openvibe-publishing');
-          for (const m of ['revisions','schedule','taxonomy','citations','media','discussion','seo','authorship','index-hooks','ssr']) require('openvibe-publishing/' + m);
-          const Database = require('better-sqlite3');
-          const db = new Database(':memory:');
-          p.revisions.createRevisionStore(db, { prefix: 'ci' }).create({ entityId: 'e', expectedRevision: 0, content: 'x' });
-          console.log('ok', require('openvibe-publishing/package.json').version);
+          (async () => {
+            const p = require('openvibe-publishing');
+            for (const m of ['revisions','schedule','taxonomy','citations','media','discussion','seo','authorship','index-hooks','ssr','ai']) require('openvibe-publishing/' + m);
+            const { createDb } = require('openvibe-sdk/db');
+            const db = createDb({ pglite: true });
+            const revs = await p.revisions.createRevisionStore(db, { prefix: 'ci' }).ensureSchema();
+            await revs.create({ entityId: 'e', expectedRevision: 0, content: 'x' });
+            if ((await revs.headNumber('e')) !== 1) throw new Error('no revision');
+            await db.close();
+            console.log('ok', require('openvibe-publishing/package.json').version);
+          })().catch((err) => { console.error(err); process.exit(1); });
         "
   # Secret scan (gitleaks) and dependency audit, shared by every OpenVibers repo.
   security:

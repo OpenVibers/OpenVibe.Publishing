@@ -2,7 +2,7 @@
 const assert = require('assert');
 const http = require('http');
 const contracts = require('openvibe-contracts');
-const { openDb, fakeClock, suite } = require('./helpers/db');
+const { openDb, fakeClock, suite, sql } = require('./helpers/db');
 const { createDiscussionClient, createDiscussionRefs, entityRef } = require('../lib/discussion');
 
 const { test, run } = suite();
@@ -75,8 +75,8 @@ test('failures are errors, never a fabricated thread', async () => {
 test('the local table stores the reference only — no comment content columns — and resolves once', async () => {
     const community = await fakeCommunity();
     try {
-        const db = openDb('disc');
-        const refs = createDiscussionRefs(db, { prefix: 'wiki', now: fakeClock() });
+        const db = await openDb();
+        const refs = await createDiscussionRefs(db, { prefix: 'wiki', now: fakeClock() }).ensureSchema();
         const client = createDiscussionClient({ communityUrl: community.url, tokenClient });
         const ref = { service: 'wiki', type: 'page', id: 'pg_9' };
         const a = await refs.threadFor('pg_9', ref, { client });
@@ -85,9 +85,15 @@ test('the local table stores the reference only — no comment content columns �
         assert.strictEqual(b.cached, true);
         assert.strictEqual(a.threadId, b.threadId);
         assert.strictEqual(community.requests.length, 1);
-        const cols = db.prepare('PRAGMA table_info(wiki_discussion_refs)').all().map((c) => c.name).sort();
+        const cols = (await db.many(sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'wiki_discussion_refs'`)).map((c) => c.column_name).sort();
         assert.deepStrictEqual(cols, ['entity_id', 'ref', 'resolved_at', 'thread_id']);
-        assert.ok(contracts.validate('common.entity-ref@1', refs.get('pg_9').ref).valid);
+        const stored = await refs.get('pg_9');
+        assert.ok(contracts.validate('common.entity-ref@1', stored.ref).valid, 'jsonb comes back as the object');
+        assert.strictEqual(stored.resolvedAt, '2026-09-22T12:00:00.000Z');
+        assert.strictEqual((await refs.set('pg_9', 'thr_other', ref)).threadId, 'thr_other', 'set() replaces');
+        assert.strictEqual(await refs.forget('pg_9'), true);
+        assert.strictEqual(await refs.get('pg_9'), null);
+        assert.strictEqual(await refs.forget('pg_9'), false);
     } finally { community.close(); }
 });
 
