@@ -3,14 +3,16 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, **1.0.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
+**Status:** alpha, **1.1.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
 layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
 async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
-store gives its DDL as `schema(prefix)` for the product's migrations. The exit proof
-(`examples/two-products`) runs in `npm test`. Releases v0.1.0 to v1.0.0 are tagged (see
-[CHANGELOG.md](CHANGELOG.md)). The seven products (Wiki and Blog, public at openvibe.wiki and
-openvibe.blog; News, Reviews, Deals, Coupons and Trade, deployed loopback-only, not launched) still pin
-v0.4.x on SQLite; each moves to 1.x in its own PostgreSQL migration.
+store gives its DDL as `schema(prefix)` for the product's migrations. v1.1.0 adds the shared ingest
+chassis (`openvibe-publishing/ingest`) and publication glue (`openvibe-publishing/publication`) —
+additive, no existing export changed. The exit proof (`examples/two-products`) runs in `npm test`.
+Releases v0.1.0 to v1.0.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). All seven products (Wiki and
+Blog, public at openvibe.wiki and openvibe.blog; News, Reviews, Deals, Coupons and Trade, deployed
+loopback-only, not launched) run v1.0.0 on PostgreSQL today; the five content products move to v1.1.0 as
+each adopts the chassis, and no product is released until its conversion lands.
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.
 
@@ -61,16 +63,18 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/index-hooks` | `search.index-document@1` documents and tombstones, the `<owner>.index_document.upserted\|deleted` events OpenVibe.Search consumes, a monotonic index-revision sequencer, and the product's own `<product>.<type>.published\|updated\|unpublished\|deleted` events | `<prefix>_index_revisions` |
 | `openvibe-publishing/ai` | Ask OpenVibe.AI for a draft: run a registered workflow with the product's service token (polls a slow run), read its citations, get the `{ id, version, runId, model }` an AI authorship record needs; coded `AiRunError`s, never a partial draft | — |
 | `openvibe-publishing/ssr` | auto-escaping `html` tagged templates with `raw()`, a safe Markdown subset, plain-text extraction, word count, server pagination, breadcrumbs, diff markup, honest `<time>` | — |
+| `openvibe-publishing/ingest` | The shared ingest chassis: the OpenVibe.Sources client, a named change cursor and the `pullChanges` loop (per-item savepoint isolation, `{applied\|hold\|removed}`), the signed event consumer with an exactly-once inbox, the shared normalisers, and the generic PSL/registrable-host and freshness helpers | `<prefix>_ingest_cursor` |
+| `openvibe-publishing/publication` | The shared publication glue: gate → document → `sequencer.stamp` → events → `outbox.enqueue` on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping; it emits exactly `search.index-document@1` and the product's events | — |
 
-`require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`, …),
-plus `schema({ … })`, the DDL of several stores at once (below).
+`require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`,
+`.ingest`, `.publication`, …), plus `schema({ … })`, the DDL of several stores at once (below).
 
 ## Install
 
 Pin the release tarball, like every OpenVibe package (never a `file:` link or a vendored copy):
 
 ```json
-"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.0.0",
+"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.1.0",
 "openvibe-sdk": "https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.15.0",
 "pg": "^8.23.0"
 ```
@@ -121,6 +125,7 @@ const ddl = publishing.schema({ revisions: 'wiki_page', citations: 'wiki', seo: 
 | taxonomy | `schema(prefix)` | `<prefix>_terms`, `<prefix>_term_links` |
 | seo | `redirectsSchema(prefix)` | `<prefix>_redirects` |
 | index-hooks | `sequencerSchema(prefix)` | `<prefix>_index_revisions` |
+| ingest | `schema(prefix)` | `<prefix>_ingest_cursor` |
 
 Every store also has `store.schema()` (the same text) and `await store.ensureSchema()`, which runs it
 on the handle: for tests and PGlite, where the handle may create tables. The text is idempotent
@@ -257,7 +262,72 @@ await db.tx(async (t) => {
 URL, publication state, indexability; public only for public, listable content). Neither sets
 `event_id`: the OpenVibe.Events outbox assigns it. Enqueue both in the same transaction as the
 product's state change. Tests validate every document and envelope with openvibe-contracts
-v0.49.0 and mirror Search's webhook checks.
+v0.76.0 and mirror Search's webhook checks.
+
+## Ingesting from Sources (the ingest chassis)
+
+The five content products (News, Reviews, Deals, Coupons, Trade) each pull OpenVibe.Sources items, track a
+change cursor, consume signed OpenVibe.Events deliveries and normalise item fields. They share that code
+here; each keeps its own domain tables, gate facts, facets and item mapping.
+
+```js
+const { createSourcesClient, createChangeCursor, pullChanges, createEventConsumer }
+    = require('openvibe-publishing/ingest');
+
+const sources = createSourcesClient({ config });                // { sources, oauth }, from the product
+const cursor = createChangeCursor(db, { prefix: 'deals' });     // <prefix>_ingest_cursor in a migration
+const summary = await pullChanges({
+    db, cursor, source: sources, name: 'sources.deals.after',
+    apply: async (item, t) => {                                 // one savepoint per item
+        const row = await offers.upsertFromItem(t, item);
+        return row.held ? 'hold' : 'applied';                   // 'removed' for a deleted item
+    },
+});
+// → { pages, applied, hold, removed, failed, after }
+```
+
+`pullChanges` commits one transaction per page — the page's writes **and** the cursor advance — and runs
+`apply(item, t)` in a savepoint, so one unreadable item is rolled back alone (`failed`) and never stalls
+the page or the cursor. `apply` returns `'applied' | 'hold' | 'removed'`; `hold` is counted and the cursor
+moves past it (the product records the hold itself).
+
+`createEventConsumer({ db, secrets, consumer }).apply(raw, headers, handler)` verifies the
+`X-OpenVibe-Signature` v2 HMAC (±300 s; a v1-only or stale delivery is refused) and runs the handler
+exactly once per `event_id` through the SDK's pg inbox, so a redelivery changes nothing and a failed
+handler rolls back its receipt.
+
+`ingest.normalize` holds the normalisers the products share (folding, title/URL keys, hosts, amounts,
+currencies, instants, enum/text parsing, the Reviews key/alias normalisers), `ingest.hosts` the PSL and
+registrable-host helpers, and `ingest.freshness` the generic staleness rule. Nothing defaults a date to
+"now", and no policy threshold is a constant: a product passes its own.
+
+## The publication glue (createPublication)
+
+`createPublication` is the half the five content products each re-implement: it takes the product's gate
+(`decide`), document builder (`document`), canonical path (`page`), the index sequencer and the outbox, and
+runs gate → document → `sequencer.stamp(t, doc)` → event → `outbox.enqueue(t, …)` on the **caller's**
+transaction handle, so the index document, its event and the product's own change commit or roll back
+together.
+
+```js
+const { createPublication } = require('openvibe-publishing/publication');
+const publication = createPublication({
+    owner: 'deals', sequencer, outbox, baseUrl: config.baseUrl, indexnow,
+    decide: (offer, now) => publication.decideOffer(offer),      // the product's gate facts
+    document: (offer, decision) => offerDocument(offer),         // hooks.buildIndexDocument/tombstone
+    page: (offer) => `/d/${offer.slug}`,
+});
+await db.tx(async (t) => {
+    await t.exec(sql`UPDATE deal_offers SET … WHERE id = ${id}`);
+    await publication.sync(t, offer);                            // stamps + enqueues in the SAME tx
+});
+```
+
+It emits exactly `search.index-document@1` (carried by `<owner>.index_document.upserted|deleted`) and the
+product's own `<owner>.<type>.<action>` events; an unchanged document is a no-op, a resource that was
+never indexed gets no tombstone, and unpublish/merge call `tombstone(t, …)`. It owns the IndexNow ping
+(config stays per product): an indexable page that appeared or changed, or a page Search already had that
+went away, is announced; a draft, private or noindex page never is.
 
 ## Exit proof: two products
 
@@ -276,10 +346,12 @@ survives a worker restart.
 
 ## Capabilities
 
-The package implements no capability and holds no grant. Three modules call a service with the
+The package implements no capability and holds no grant. Four modules call a service with the
 **product's** token client, so the product needs the grant: `discussion` calls OpenVibe.Community
 (`community.comment.write` to resolve a thread), `ai` calls OpenVibe.AI (`ai.run.create`,
-`ai.run.read`) and `media`'s `verify()` reads OpenVibe.Media objects (`media.object.read`).
+`ai.run.read`), `media`'s `verify()` reads OpenVibe.Media objects (`media.object.read`), and `ingest`'s
+Sources client reads OpenVibe.Sources items and registry records (`sources.item.read`,
+`sources.source.read`).
 
 ## Acceptance
 
@@ -291,7 +363,12 @@ states (`media.test.js`); discussion references without content (`discussion.tes
 redirects, structured data and feeds built only from given fields (`seo.test.js`); AI content held
 until a person's review (`authorship.test.js`, `ai.test.js`); Search documents and envelopes valid
 against openvibe-contracts, and `stamp(t, …)` committing with its event (`index-hooks.test.js`);
-escaping and the Markdown subset, including the ReDoS fix (`ssr.test.js`); every subpath export loading
+escaping and the Markdown subset, including the ReDoS fix (`ssr.test.js`); the ingest chassis — the
+normalisers and host helpers byte-for-byte against 119 cases captured from the five current product files,
+the Sources client against a stub server, cursor advancement with per-item savepoint isolation and hold,
+and the signed event consumer's window and exactly-once inbox (`ingest.test.js`); the publication glue —
+contracts-valid documents and events, `stamp` + `enqueue` in one transaction, tombstones and the IndexNow
+ping (`publication.test.js`); every subpath export loading
 alone without a driver (`package.test.js`); the DDL: idempotent, 63-byte names, PostgreSQL types,
 CHECKs, PL/pgSQL guards, applied by `db.migrate()`, and an index under every query the stores send
 (`schema.test.js`); callers' transactions spanning store writes, rollbacks leaving nothing, savepoints
@@ -342,5 +419,5 @@ eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --us
 - PostgreSQL 18 (through PgBouncer in transaction mode), the product's own database (ADR-035).
 - `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v1.25.0).
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
-  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.49.0, a
+  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.76.0, a
   devDependency: nothing in `lib/` needs it at runtime).

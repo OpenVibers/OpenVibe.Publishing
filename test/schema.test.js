@@ -20,9 +20,10 @@ const { createReviewLog } = require('../lib/authorship');
 const { createRedirectStore } = require('../lib/seo');
 const { createDiscussionRefs } = require('../lib/discussion');
 const { createIndexSequencer, tombstone } = require('../lib/index-hooks');
+const { createChangeCursor } = require('../lib/ingest');
 
 const { test, run } = suite();
-const MODULES = ['revisions', 'citations', 'media', 'discussion', 'schedule', 'authorship', 'taxonomy', 'seo', 'indexHooks'];
+const MODULES = ['revisions', 'citations', 'media', 'discussion', 'schedule', 'authorship', 'taxonomy', 'seo', 'indexHooks', 'ingest'];
 const LONGEST = `p${'x'.repeat(39)}`;   // PREFIX_RE allows 40 characters
 const all = (prefix) => publishing.schema(Object.fromEntries(MODULES.map((m) => [m, prefix])));
 
@@ -31,11 +32,14 @@ test('every storing module exports its DDL; the root schema() joins them', () =>
     for (const m of ['citations', 'media', 'discussion', 'schedule', 'authorship', 'taxonomy']) assert.strictEqual(typeof require(`../lib/${m}`).schema, 'function', m);
     assert.strictEqual(typeof require('../lib/seo').redirectsSchema, 'function');
     assert.strictEqual(typeof require('../lib/index-hooks').sequencerSchema, 'function');
+    assert.strictEqual(typeof require('../lib/ingest').schema, 'function');
     const text = publishing.schema({ revisions: ['wiki_page', 'wiki_talk'], seo: 'wiki_page' });
     assert.match(text, /-- openvibe-publishing\/revisions \(prefix wiki_page\)/);
     assert.match(text, /CREATE TABLE IF NOT EXISTS wiki_talk_revisions/);
     assert.match(text, /CREATE TABLE IF NOT EXISTS wiki_page_redirects/);
+    assert.match(publishing.schema({ ingest: 'news' }), /-- openvibe-publishing\/ingest \(prefix news\)\nCREATE TABLE IF NOT EXISTS news_ingest_cursor/);
     assert.throws(() => publishing.schema({ ssr: 'x' }), /no store in module "ssr"/);
+    assert.throws(() => publishing.schema({ publication: 'x' }), /no store in module "publication"/);
     assert.throws(() => publishing.schema({ revisions: 'Bad Prefix' }), /prefix/);
     assert.strictEqual(require('../lib/media').schema('blog_post'), createAttachmentStore({ query() {}, tx() {}, many() {}, maybe() {}, exec() {}, sql }, { prefix: 'blog_post' }).schema());
 });
@@ -63,6 +67,25 @@ test('the DDL is idempotent and applies as a service migration (db.migrate), onc
     assert.deepStrictEqual((await db.migrate({ dir, log: quiet })).applied.map((m) => m.id), ['0001']);
     assert.deepStrictEqual((await db.migrate({ dir, log: quiet })).applied, []);
     assert.ok(await db.value(sql`SELECT to_regclass('blog_revisions') IS NOT NULL AS ok`));
+});
+
+test('the ingest cursor DDL: one <prefix>_ingest_cursor keyed by feed name, idempotent, served by its PK', async () => {
+    const db = await openDb();
+    const cursor = await createChangeCursor(db, { prefix: 'news', now: fakeClock() }).ensureSchema();
+    assert.strictEqual(cursor.table, 'news_ingest_cursor');
+    await db.query(cursor.schema());   // idempotent
+    const cols = await db.many(sql`SELECT column_name, data_type, collation_name FROM information_schema.columns WHERE table_name = 'news_ingest_cursor' ORDER BY ordinal_position`);
+    assert.deepStrictEqual(cols.map((c) => c.column_name), ['name', 'cursor', 'updated_at']);
+    assert.deepStrictEqual(cols.map((c) => c.data_type), ['text', 'bigint', 'bigint']);
+    assert.strictEqual(cols[0].collation_name, 'C');
+    assert.strictEqual(await cursor.get('default'), 0);
+    await db.tx((t) => cursor.set(t, 'sources', 7));
+    assert.strictEqual(await cursor.get('sources'), 7);
+    await db.tx((t) => cursor.set(t, 'sources', 3));
+    assert.strictEqual(await cursor.get('sources'), 7, 'the cursor never goes back');
+    await db.exec(sql`SET enable_seqscan = off`);
+    const plan = await db.one(sql`EXPLAIN SELECT cursor FROM news_ingest_cursor WHERE name = 'sources'`);
+    assert.match(String(Object.values(plan)[0]), /Index/, 'the primary key serves the cursor lookup');
 });
 
 test('PostgreSQL types: bigint identities, jsonb, bigint epoch ms, timestamptz for datetime text', async () => {

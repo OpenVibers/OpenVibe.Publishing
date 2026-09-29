@@ -1,0 +1,1288 @@
+{
+  "_about": "Captured from the five current product copies (read-only) so the ported helpers can be proven byte-for-byte. Each case cites its source file:line; regenerate from the J1 capture notes.",
+  "cases": [
+    {
+      "ns": "normalize",
+      "fn": "fold",
+      "args": [
+        "Héllo,  World!"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:22",
+      "value": "hello world"
+    },
+    {
+      "ns": "normalize",
+      "fn": "titleKey",
+      "args": [
+        "Héllo,  World!"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:28",
+      "value": "hello world"
+    },
+    {
+      "ns": "normalize",
+      "fn": "fold",
+      "args": [
+        "It's the Rye — a grass"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:22",
+      "value": "its the rye a grass"
+    },
+    {
+      "ns": "normalize",
+      "fn": "titleKey",
+      "args": [
+        "It's the Rye — a grass"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:28",
+      "value": "its the rye a grass"
+    },
+    {
+      "ns": "normalize",
+      "fn": "fold",
+      "args": [
+        "ABC 123"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:22",
+      "value": "abc 123"
+    },
+    {
+      "ns": "normalize",
+      "fn": "titleKey",
+      "args": [
+        "ABC 123"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:28",
+      "value": "abc 123"
+    },
+    {
+      "ns": "normalize",
+      "fn": "fold",
+      "args": [
+        ""
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:22",
+      "value": ""
+    },
+    {
+      "ns": "normalize",
+      "fn": "titleKey",
+      "args": [
+        ""
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:28",
+      "value": ""
+    },
+    {
+      "ns": "normalize",
+      "fn": "fold",
+      "args": [
+        null
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:22",
+      "value": ""
+    },
+    {
+      "ns": "normalize",
+      "fn": "titleKey",
+      "args": [
+        null
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:28",
+      "value": ""
+    },
+    {
+      "ns": "normalize",
+      "fn": "fold",
+      "args": [
+        "naïve café"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:22",
+      "value": "naive cafe"
+    },
+    {
+      "ns": "normalize",
+      "fn": "titleKey",
+      "args": [
+        "naïve café"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:28",
+      "value": "naive cafe"
+    },
+    {
+      "ns": "normalize",
+      "fn": "urlKey",
+      "args": [
+        "https://WWW.Example.com/a/b/?utm_source=x&b=2&a=1#frag"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:36",
+      "value": "https://example.com/a/b?a=1&b=2"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostOf",
+      "args": [
+        "https://WWW.Example.com/a/b/?utm_source=x&b=2&a=1#frag"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:50",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "publisherDomain",
+      "args": [
+        "https://WWW.Example.com/a/b/?utm_source=x&b=2&a=1#frag"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:63",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "urlKey",
+      "args": [
+        "http://example.com/path"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:36",
+      "value": "https://example.com/path"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostOf",
+      "args": [
+        "http://example.com/path"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:50",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "publisherDomain",
+      "args": [
+        "http://example.com/path"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:63",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "urlKey",
+      "args": [
+        "https://example.com/"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:36",
+      "value": "https://example.com/"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostOf",
+      "args": [
+        "https://example.com/"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:50",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "publisherDomain",
+      "args": [
+        "https://example.com/"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:63",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "urlKey",
+      "args": [
+        "https://news.bbc.co.uk/x"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:36",
+      "value": "https://news.bbc.co.uk/x"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostOf",
+      "args": [
+        "https://news.bbc.co.uk/x"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:50",
+      "value": "news.bbc.co.uk"
+    },
+    {
+      "ns": "normalize",
+      "fn": "publisherDomain",
+      "args": [
+        "https://news.bbc.co.uk/x"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:63",
+      "value": "bbc.co.uk"
+    },
+    {
+      "ns": "normalize",
+      "fn": "urlKey",
+      "args": [
+        "ftp://example.com/x"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:36",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostOf",
+      "args": [
+        "ftp://example.com/x"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:50",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "publisherDomain",
+      "args": [
+        "ftp://example.com/x"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:63",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "urlKey",
+      "args": [
+        "not a url"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:36",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostOf",
+      "args": [
+        "not a url"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:50",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "publisherDomain",
+      "args": [
+        "not a url"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:63",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "urlKey",
+      "args": [
+        ""
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:36",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostOf",
+      "args": [
+        ""
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:50",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "publisherDomain",
+      "args": [
+        ""
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:63",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "terms",
+      "args": [
+        "Rockets launch into the sky, rockets everywhere"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:115",
+      "resultMode": "set",
+      "value": [
+        "everywhere",
+        "launch",
+        "rocket",
+        "sky"
+      ]
+    },
+    {
+      "ns": "normalize",
+      "fn": "entities",
+      "args": [
+        "President Smith met NASA in New York. The market rose."
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:130",
+      "resultMode": "set",
+      "value": [
+        "nasa",
+        "president smith",
+        "york"
+      ]
+    },
+    {
+      "ns": "normalize",
+      "fn": "shingles",
+      "args": [
+        "a quick brown fox jumps"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:159",
+      "resultMode": "set",
+      "value": [
+        "a quick",
+        "brown fox",
+        "fox jumps",
+        "quick brown"
+      ]
+    },
+    {
+      "ns": "normalize",
+      "fn": "jaccard",
+      "args": [
+        "a quick brown fox",
+        "a quick brown fox jumps"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:167",
+      "resultMode": "jaccardPair",
+      "value": 0.75
+    },
+    {
+      "ns": "normalize",
+      "fn": "stem",
+      "args": [
+        "rockets"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:108",
+      "value": "rocket"
+    },
+    {
+      "ns": "normalize",
+      "fn": "stem",
+      "args": [
+        "parties"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:108",
+      "value": "party"
+    },
+    {
+      "ns": "normalize",
+      "fn": "stem",
+      "args": [
+        "class"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:108",
+      "value": "class"
+    },
+    {
+      "ns": "normalize",
+      "fn": "stem",
+      "args": [
+        "bus"
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:108",
+      "value": "bus"
+    },
+    {
+      "ns": "normalize",
+      "fn": "licensedSummary",
+      "args": [
+        "A short summary that goes on and on and on beyond the limit.",
+        {
+          "termsNote": "Short summaries allowed with attribution."
+        }
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:184",
+      "value": {
+        "summary": "A short summary that goes on and on and on beyond the limit.",
+        "basis": "terms_allow_short_summaries"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "licensedSummary",
+      "args": [
+        "A short summary that goes on and on and on beyond the limit.",
+        {
+          "termsNote": "Headlines and links only."
+        }
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:184",
+      "value": {
+        "summary": null,
+        "basis": "terms_forbid_summaries"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "licensedSummary",
+      "args": [
+        "A short summary that goes on and on and on beyond the limit.",
+        {
+          "termsNote": "No summaries."
+        }
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:184",
+      "value": {
+        "summary": null,
+        "basis": "terms_forbid_summaries"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "licensedSummary",
+      "args": [
+        "A short summary that goes on and on and on beyond the limit.",
+        {
+          "licenseNote": "CC BY; summaries are allowed."
+        }
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:184",
+      "value": {
+        "summary": "A short summary that goes on and on and on beyond the limit.",
+        "basis": "terms_allow_short_summaries"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "licensedSummary",
+      "args": [
+        "A short summary that goes on and on and on beyond the limit.",
+        {}
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:184",
+      "value": {
+        "summary": null,
+        "basis": "terms_do_not_allow_summaries"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "licensedSummary",
+      "args": [
+        "A short summary that goes on and on and on beyond the limit.",
+        {
+          "termsNote": "Short summaries allowed.",
+          "maxChars": 0
+        }
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:184",
+      "value": {
+        "summary": null,
+        "basis": "summaries_disabled"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "licensedSummary",
+      "args": [
+        "A short summary that goes on and on and on beyond the limit.",
+        {
+          "termsNote": "Short summaries allowed.",
+          "maxChars": 20
+        }
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:184",
+      "value": {
+        "summary": "A short summary…",
+        "basis": "terms_allow_short_summaries"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "independentSources",
+      "args": [
+        [
+          {
+            "id": "a",
+            "source_key": "s1",
+            "canonical_url": "https://news.example.com/1",
+            "outlet": "Example",
+            "duplicate_of": null
+          },
+          {
+            "id": "b",
+            "source_key": "s2",
+            "canonical_url": "https://other.example.com/2",
+            "outlet": "Other",
+            "duplicate_of": null
+          },
+          {
+            "id": "c",
+            "source_key": "s3",
+            "canonical_url": "https://news.bbc.co.uk/3",
+            "outlet": "BBC",
+            "duplicate_of": "a"
+          }
+        ]
+      ],
+      "source": "OpenVibe.News/server/domain/text.js:83",
+      "resultMode": "groups",
+      "value": [
+        [
+          "a",
+          "b",
+          "c"
+        ]
+      ]
+    },
+    {
+      "ns": "normalize",
+      "fn": "normalizeUrl",
+      "args": [
+        "https://WWW.Example.com/a/b/?utm_source=x&b=2&a=1#frag"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:39",
+      "value": "https://www.example.com/a/b/?a=1&b=2"
+    },
+    {
+      "ns": "normalize",
+      "fn": "normalizeUrl",
+      "args": [
+        "http://example.com/path"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:39",
+      "value": "http://example.com/path"
+    },
+    {
+      "ns": "normalize",
+      "fn": "normalizeUrl",
+      "args": [
+        "https://example.com/"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:39",
+      "value": "https://example.com/"
+    },
+    {
+      "ns": "normalize",
+      "fn": "normalizeUrl",
+      "args": [
+        "https://news.bbc.co.uk/x"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:39",
+      "value": "https://news.bbc.co.uk/x"
+    },
+    {
+      "ns": "normalize",
+      "fn": "normalizeUrl",
+      "args": [
+        "ftp://example.com/x"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:39",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "normalizeUrl",
+      "args": [
+        "not a url"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:39",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "normalizeUrl",
+      "args": [
+        ""
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:39",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostPathKey",
+      "args": [
+        "https://www.example.com/a/b/?a=1&b=2"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:56",
+      "value": "example.com/a/b/?a=1&b=2"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostPathKey",
+      "args": [
+        "http://example.com/path"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:56",
+      "value": "example.com/path"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostPathKey",
+      "args": [
+        "https://example.com/"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:56",
+      "value": "example.com/"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostPathKey",
+      "args": [
+        "https://news.bbc.co.uk/x"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:56",
+      "value": "news.bbc.co.uk/x"
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostPathKey",
+      "args": [
+        null
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:56",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostPathKey",
+      "args": [
+        null
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:56",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "hostPathKey",
+      "args": [
+        null
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:56",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "domainOf",
+      "args": [
+        "https://www.Example.com/x"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:61",
+      "value": "example.com"
+    },
+    {
+      "ns": "normalize",
+      "fn": "domainOf",
+      "args": [
+        null
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:61",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "domainOf",
+      "args": [
+        "x"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:61",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "slugify",
+      "args": [
+        "A Great Deal",
+        "off_01ABC"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:65",
+      "value": "a-great-deal-01abc"
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseAmount",
+      "args": [
+        "1,299.99",
+        "price"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:77",
+      "value": {
+        "text": "1299.99",
+        "num": 1299.99
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseAmount",
+      "args": [
+        "-3",
+        "price"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:77",
+      "throws": {
+        "status": 422,
+        "code": "request.invalid",
+        "message": "price must be a plain amount like 19.99 (no currency symbols)"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseAmount",
+      "args": [
+        12.5,
+        "price"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:77",
+      "value": {
+        "text": "12.5",
+        "num": 12.5
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseCurrency",
+      "args": [
+        "usd"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:89",
+      "value": "USD"
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseCurrency",
+      "args": [
+        "US"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:89",
+      "throws": {
+        "status": 422,
+        "code": "request.invalid",
+        "message": "currency must be an ISO 4217 code such as USD or EUR"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseEnum",
+      "args": [
+        "NEW",
+        [
+          "new",
+          "used"
+        ],
+        "condition"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:93",
+      "value": "new"
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseEnum",
+      "args": [
+        "broken",
+        [
+          "new",
+          "used"
+        ],
+        "condition"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:93",
+      "throws": {
+        "status": 422,
+        "code": "request.invalid",
+        "message": "condition must be one of new, used"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseInstant",
+      "args": [
+        "2026-09-20T10:00:00Z",
+        "at"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:99",
+      "value": 1789898400000
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseInstant",
+      "args": [
+        "nope",
+        "at"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:99",
+      "throws": {
+        "status": 422,
+        "code": "request.invalid",
+        "message": "at must be a date"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "text",
+      "args": [
+        "  a  b ",
+        {
+          "field": "title",
+          "max": 5
+        }
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:111",
+      "value": "a b"
+    },
+    {
+      "ns": "normalize",
+      "fn": "longText",
+      "args": [
+        "a\r\nb  \n",
+        10
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:122",
+      "value": "a\nb"
+    },
+    {
+      "ns": "normalize",
+      "fn": "tokens",
+      "args": [
+        "Héllo, World 123"
+      ],
+      "source": "OpenVibe.Deals/server/domain/util.js:129",
+      "value": [
+        "héllo",
+        "world",
+        "123"
+      ]
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseTime",
+      "args": [
+        "2026-09-20T10:00:00Z"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:16",
+      "value": 1789898400000
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseTime",
+      "args": [
+        "2026-09-20"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:16",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseTime",
+      "args": [
+        1758362400000
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:16",
+      "value": 1758362400000
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseDecimal",
+      "args": [
+        "-12.5"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:28",
+      "value": {
+        "text": "-12.5",
+        "num": -12.5
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseDecimal",
+      "args": [
+        "1e3"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:28",
+      "value": {
+        "text": "1e3",
+        "num": 1000
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "parseDecimal",
+      "args": [
+        "abc"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:28",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "str",
+      "args": [
+        " x ",
+        5,
+        "name"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:42",
+      "value": "x"
+    },
+    {
+      "ns": "normalize",
+      "fn": "str",
+      "args": [
+        "xxxxxx",
+        5,
+        "name"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:42",
+      "throws": {
+        "status": 422,
+        "code": "request.invalid",
+        "message": "name is longer than 5 characters"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "httpUrl",
+      "args": [
+        "https://example.com/x"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:54",
+      "value": "https://example.com/x"
+    },
+    {
+      "ns": "normalize",
+      "fn": "httpUrl",
+      "args": [
+        "ftp://example.com"
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:54",
+      "throws": {
+        "status": 422,
+        "code": "request.invalid",
+        "message": "undefined must be http(s)"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "json",
+      "args": [
+        "{\"a\":1}",
+        {
+          "z": 0
+        }
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:63",
+      "value": {
+        "a": 1
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "json",
+      "args": [
+        "{oops",
+        {
+          "z": 0
+        }
+      ],
+      "source": "OpenVibe.Trade/server/domain/util.js:63",
+      "value": {
+        "z": 0
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "name",
+        "ACME & Co."
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:11 (via :59)",
+      "value": "acme and co"
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "name",
+        "  "
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:11 (via :59)",
+      "throws": {
+        "status": 422,
+        "code": "alias.invalid",
+        "message": "A name needs at least one letter or digit"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "url",
+        "https://WWW.Example.com/a?utm_source=x&b=2"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:19 (via :59)",
+      "value": "example.com/a?b=2"
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "url",
+        "not a url"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:19 (via :59)",
+      "throws": {
+        "status": 422,
+        "code": "alias.invalid",
+        "message": "A URL alias must be an absolute http(s) URL"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "sku",
+        " ab c "
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:31 (via :59)",
+      "value": "ABC"
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "gtin",
+        "12345678"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:38 (via :59)",
+      "value": "00000012345678"
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "source",
+        "Staff-Codes"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:44 (via :59)",
+      "value": "staff-codes"
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "external",
+        "Steam_App:620"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:51 (via :59)",
+      "value": "steam_app:620"
+    },
+    {
+      "ns": "normalize",
+      "fn": "alias",
+      "args": [
+        "nope",
+        "x"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:59",
+      "throws": {
+        "status": 422,
+        "code": "alias.invalid",
+        "message": "alias type must be one of name, url, sku, mpn, gtin, source, external"
+      }
+    },
+    {
+      "ns": "normalize",
+      "fn": "tryAlias",
+      "args": [
+        "gtin",
+        "nope"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:66",
+      "value": null
+    },
+    {
+      "ns": "normalize",
+      "fn": "slug",
+      "args": [
+        "Ünïcode & Things"
+      ],
+      "source": "OpenVibe.Reviews/server/reviews/normalize.js:71",
+      "value": "unicode-and-things"
+    },
+    {
+      "ns": "hosts",
+      "fn": "normalizeHost",
+      "args": [
+        "WWW.Example-Shop.co.uk."
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:36",
+      "value": "www.example-shop.co.uk"
+    },
+    {
+      "ns": "hosts",
+      "fn": "normalizeHost",
+      "args": [
+        "bücher.example"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:36",
+      "throws": {
+        "status": 400,
+        "code": "host.invalid",
+        "message": "special-use names are not merchants"
+      }
+    },
+    {
+      "ns": "hosts",
+      "fn": "normalizeHost",
+      "args": [
+        "localhost"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:36",
+      "throws": {
+        "status": 400,
+        "code": "host.invalid",
+        "message": "host needs at least two labels"
+      }
+    },
+    {
+      "ns": "hosts",
+      "fn": "normalizeHost",
+      "args": [
+        "news.bbc.co.uk"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:36",
+      "value": "news.bbc.co.uk"
+    },
+    {
+      "ns": "hosts",
+      "fn": "normalizeHost",
+      "args": [
+        "a.b.myshopify.com"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:36",
+      "value": "a.b.myshopify.com"
+    },
+    {
+      "ns": "hosts",
+      "fn": "hostOfUrl",
+      "args": [
+        "https://www.Example.com/x/y"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:69",
+      "value": {
+        "host": "www.example.com",
+        "path": "/x/y"
+      }
+    },
+    {
+      "ns": "hosts",
+      "fn": "hostOfUrl",
+      "args": [
+        "ftp://example.com"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:69",
+      "value": null
+    },
+    {
+      "ns": "hosts",
+      "fn": "normalizePathPrefix",
+      "args": [
+        "/Shop/x/"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:78",
+      "value": "/Shop/x"
+    },
+    {
+      "ns": "hosts",
+      "fn": "checkRule",
+      "args": [
+        {
+          "host": "shop.example.co.uk",
+          "path_prefix": "/deals"
+        }
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:96",
+      "value": {
+        "host": "shop.example.co.uk",
+        "registrable": "example.co.uk",
+        "path_prefix": "/deals",
+        "include_subdomains": 1
+      }
+    },
+    {
+      "ns": "hosts",
+      "fn": "checkRule",
+      "args": [
+        {
+          "host": "co.uk"
+        }
+      ],
+      "source": "OpenVibe.Coupons/server/domain/hosts.js:96",
+      "throws": {
+        "status": 400,
+        "code": "host.invalid",
+        "message": "co.uk is a public suffix (co.uk), not a site"
+      }
+    },
+    {
+      "ns": "hosts",
+      "fn": "registrableDomain",
+      "args": [
+        "www.example-shop.co.uk"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/psl.js:93",
+      "value": "example-shop.co.uk"
+    },
+    {
+      "ns": "hosts",
+      "fn": "registrableDomain",
+      "args": [
+        "news.bbc.co.uk"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/psl.js:93",
+      "value": "bbc.co.uk"
+    },
+    {
+      "ns": "hosts",
+      "fn": "registrableDomain",
+      "args": [
+        "co.uk"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/psl.js:93",
+      "value": null
+    },
+    {
+      "ns": "hosts",
+      "fn": "registrableDomain",
+      "args": [
+        "a.b.myshopify.com"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/psl.js:93",
+      "value": "b.myshopify.com"
+    },
+    {
+      "ns": "hosts",
+      "fn": "registrableDomain",
+      "args": [
+        "foo.github.io"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/psl.js:93",
+      "value": "foo.github.io"
+    },
+    {
+      "ns": "hosts",
+      "fn": "publicSuffix",
+      "args": [
+        "www.example-shop.co.uk"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/psl.js:87",
+      "value": "co.uk"
+    },
+    {
+      "ns": "hosts",
+      "fn": "publicSuffix",
+      "args": [
+        "news.bbc.co.uk"
+      ],
+      "source": "OpenVibe.Coupons/server/domain/psl.js:87",
+      "value": "co.uk"
+    }
+  ]
+}

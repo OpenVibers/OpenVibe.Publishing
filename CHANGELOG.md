@@ -4,6 +4,79 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.1.0 — 2026-09-29
+
+**Additive: two new entry points, `openvibe-publishing/ingest` and `openvibe-publishing/publication`.**
+No existing export, table layout, reason code or document shape changes; a product on v1.0.0 upgrades by
+pinning v1.1.0, and the five content products (News, Reviews, Deals, Coupons, Trade) each delete their
+own copy of this code when they convert. `require('openvibe-publishing')` exposes `.ingest` and
+`.publication` lazily, and root `schema({ … })` gains the `ingest` key.
+
+### Added — `openvibe-publishing/ingest`
+
+The chassis the five content products each re-implemented (~4,150 lines): primitives and thin factories,
+not one opinionated pipeline, because their domains diverge.
+
+- `createSourcesClient({ config, fetchImpl, now, timeoutMs })` — the OpenVibe.Sources client
+  (`GET /api/v1/items` in change order, `item`, `sources`, `source`) with a client-credentials token for
+  audience `openvibe.sources` and scopes `sources.item.read`/`sources.source.read`. Failures throw a
+  `SourcesError` with a stable code (`sources.not_configured`, `sources.token_unavailable`,
+  `sources.unavailable`, `sources.http_<status>`, `sources.bad_response`); nothing invents an item.
+- `createChangeCursor(db, { prefix, now })` — a named change cursor in `<prefix>_ingest_cursor`
+  (`name`, `cursor`, `updated_at`), `schema()` gives its DDL for the product's migration,
+  `ensureSchema()` runs it for tests; `get(name)` reads and `set(t, name, value)` advances the cursor on
+  the caller's handle, monotonically (`GREATEST`).
+- `pullChanges({ db, cursor, source, apply, name, maxPages, pageSize, onItem })` — one transaction per
+  page (the page's writes and the cursor advance commit together), one savepoint per item (an item whose
+  `apply()` throws is rolled back alone and counted `failed`, so a bad item never stalls its page or the
+  cursor), and `apply(item, t)` returns `'applied' | 'hold' | 'removed'` (a `{ outcome }` object is
+  accepted; anything else is isolated as failed). `hold` is not an error: it is counted and the cursor
+  moves past it (the product records the hold itself). Returns
+  `{ pages, applied, hold, removed, failed, after }`.
+- `createEventConsumer({ db, secrets, consumer, now, table })` — the shared half of `POST /internal/events`:
+  the `X-OpenVibe-Signature` v2 HMAC (±300 s, v1-only or stale refused), and exactly-once via the SDK's
+  pg inbox claimed in the same transaction as the handler, so a redelivery changes nothing and a failed
+  handler rolls back its receipt. `apply(raw, headers, handler) → { status, code?, event_id?, duplicate?, outcome? }`.
+- `normalize` — the shared helpers, byte-for-byte from the five copies: News's `fold/titleKey/urlKey/
+  hostOf/publisherDomain/shingles/jaccard/stem/terms/entities/licensedSummary/independentSources`, Deals's
+  `normalizeUrl/hostPathKey/domainOf/slugify/parseAmount/parseCurrency/parseInstant/parseEnum/parseDecimal/
+  parseTime/text/longText/slug/tokens/str/httpUrl/json` and its alias normalizers
+  (`alias/tryAlias/name/url/code/gtin/sourceKey/external`), Reviews's key normalizers and Trade's
+  time/decimal/string parsers. `test/ingest.test.js` proves all 119 captured cases from the five current
+  product files (`test/fixtures/normalize.json`, each case citing `file:line`).
+- `hosts` — the generic PSL and registrable-host helpers moved out of Coupons
+  (`normalizeHost/publicSuffix/registrableDomain/registrable/hostOfUrl/normalizePathPrefix/checkRule/
+  bestRule`); and `freshness` (`verdict/view`), the generic staleness rule (fresh inside the window,
+  stale after, never invented), with the threshold a parameter — no policy constant and no date ever
+  defaults to now.
+
+### Added — `openvibe-publishing/publication`
+
+`createPublication({ owner, sequencer, outbox, baseUrl, indexnow, now, decide, document, page })` — the
+glue the five products each re-implemented: gate → document → `sequencer.stamp(t, doc)` → events →
+`outbox.enqueue(t, …)`, always on the **caller's** transaction handle, so an index document, its event
+and the product's own change commit or roll back together (ADR-004).
+
+- `index(t, { document, page, traceparent })` — stamps and enqueues one document; an unchanged document
+  (same revision) is a no-op; a resource that was never indexed sends no tombstone.
+- `tombstone(t, { type, id, page, traceparent })` — the tombstone for unpublish/merge.
+- `publication(t, { type, action, id, revision, document, decision, actor, extra, traceparent })` — the
+  product's own `<owner>.<type>.<action>` event.
+- `sync(t, entity, { traceparent, forSearch })` — the whole chain for one entity for a product that
+  supplies `decide`/`document`/`page`.
+- It emits exactly `search.index-document@1` carried by `<owner>.index_document.upserted|deleted`, and
+  the publication events (`index-hooks.publicationEvent`), both validated by openvibe-contracts; and it
+  owns the IndexNow ping (config stays per product): an indexable page that appeared/changed or a page
+  Search already had that went away is announced, a draft/private/noindex page never is, and
+  `pingSoon` is a no-op without a key and never throws.
+
+### Tests
+
+`test/ingest.test.js` and `test/publication.test.js` (new) plus the extended `test/schema.test.js`
+(the `<prefix>_ingest_cursor` DDL, idempotent, served by its primary key).
+`npm test` (Node 22): 18 files, 135 cases; 17 files and 1 skipped (postgres) when `OV_TEST_PG_URL` is
+not set.
+
 ## 1.0.0 — 2026-09-28
 
 **Breaking: the stores run on PostgreSQL through `openvibe-sdk/db`, and every store API is async**
