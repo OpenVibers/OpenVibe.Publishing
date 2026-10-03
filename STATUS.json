@@ -27,13 +27,13 @@
     "publication"
   ],
   "consumers": [
-    "OpenVibe.Wiki (v1.0.0 on PostgreSQL; public at https://openvibe.wiki)",
-    "OpenVibe.Blog (v1.0.0 on PostgreSQL; public at https://openvibe.blog)",
-    "OpenVibe.News (v1.0.0 on PostgreSQL; deployed loopback-only, not launched)",
-    "OpenVibe.Reviews (v1.0.0 on PostgreSQL; deployed loopback-only, not launched)",
-    "OpenVibe.Deals (v1.0.0 on PostgreSQL; deployed loopback-only, not launched)",
-    "OpenVibe.Coupons (v1.0.0 on PostgreSQL; deployed loopback-only, not launched)",
-    "OpenVibe.Trade (v1.0.0 on PostgreSQL; deployed loopback-only, not launched)"
+    "OpenVibe.Wiki (v1.1.0 on PostgreSQL; public at https://openvibe.wiki)",
+    "OpenVibe.Blog (v1.1.0 on PostgreSQL; public at https://openvibe.blog)",
+    "OpenVibe.News (v1.1.0 on PostgreSQL; deployed loopback-only, not launched)",
+    "OpenVibe.Reviews (v1.1.0 on PostgreSQL; deployed loopback-only, not launched)",
+    "OpenVibe.Deals (v1.1.0 on PostgreSQL; deployed loopback-only, not launched)",
+    "OpenVibe.Coupons (v1.1.0 on PostgreSQL; deployed loopback-only, not launched)",
+    "OpenVibe.Trade (v1.1.0 on PostgreSQL; deployed loopback-only, not launched)"
   ],
   "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
