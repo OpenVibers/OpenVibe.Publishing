@@ -3,12 +3,13 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, **1.1.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
+**Status:** alpha, **1.2.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
 layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
 async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
 store gives its DDL as `schema(prefix)` for the product's migrations. v1.1.0 adds the shared ingest
 chassis (`openvibe-publishing/ingest`) and publication glue (`openvibe-publishing/publication`) —
-additive, no existing export changed. The exit proof (`examples/two-products`) runs in `npm test`.
+additive, no existing export changed. v1.2.0 adds `openvibe-publishing/layout`, the page document the
+seven sites render through `openvibe-shared/shell` (additive). The exit proof (`examples/two-products`) runs in `npm test`.
 Releases v0.1.0 to v1.0.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). All seven products (Wiki and
 Blog, public at openvibe.wiki and openvibe.blog; News, Reviews, Deals, Coupons and Trade, deployed
 loopback-only, not launched) run v1.0.0 on PostgreSQL today; the five content products move to v1.1.0 as
@@ -65,16 +66,17 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/ssr` | auto-escaping `html` tagged templates with `raw()`, a safe Markdown subset, plain-text extraction, word count, server pagination, breadcrumbs, diff markup, honest `<time>` | — |
 | `openvibe-publishing/ingest` | The shared ingest chassis: the OpenVibe.Sources client, a named change cursor and the `pullChanges` loop (per-item savepoint isolation, `{applied\|hold\|removed}`), the signed event consumer with an exactly-once inbox, the shared normalisers, and the generic PSL/registrable-host and freshness helpers | `<prefix>_ingest_cursor` |
 | `openvibe-publishing/publication` | The shared publication glue: gate → document → `sequencer.stamp` → events → `outbox.enqueue` on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping; it emits exactly `search.index-document@1` and the product's events | — |
+| `openvibe-publishing/layout` | `renderDocument(o)`: the whole page through `openvibe-shared/shell` `page()` (≥ 2.6.0), with robots and canonical from the gate's decision (throws without one), article times, prev/next, feeds, the app icon, stylesheets, the boost marker, the body frame and the footer init | — |
 
 `require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`,
-`.ingest`, `.publication`, …), plus `schema({ … })`, the DDL of several stores at once (below).
+`.ingest`, `.publication`, `.layout`, …), plus `schema({ … })`, the DDL of several stores at once (below).
 
 ## Install
 
 Pin the release tarball, like every OpenVibe package (never a `file:` link or a vendored copy):
 
 ```json
-"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.1.0",
+"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.2.0",
 "openvibe-sdk": "https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.15.0",
 "pg": "^8.23.0"
 ```

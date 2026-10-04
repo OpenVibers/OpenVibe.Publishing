@@ -5,7 +5,7 @@
   "wave": "W15",
   "kind": "packages",
   "package": "openvibe-publishing",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "plan": "OpenVibe End-to-End Realignment & Implementation Plan, revision 3 (20 Sep 2026)",
   "runtime": null,
   "port": null,
@@ -24,7 +24,8 @@
     "ai",
     "ssr",
     "ingest",
-    "publication"
+    "publication",
+    "layout"
   ],
   "consumers": [
     "OpenVibe.Wiki (v1.1.0 on PostgreSQL; public at https://openvibe.wiki)",
@@ -40,10 +41,10 @@
   "contracts": "openvibe-contracts v0.76.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
   "dependsOn": [
     "openvibe-sdk >=0.15.0 (peer; tests pin v0.15.0)",
-    "openvibe-shared >=1.5.0 (optional peer; tests pin v1.25.0)",
+    "openvibe-shared >=1.5.0 (optional peer; tests pin v2.6.0; layout needs >=2.6.0)",
     "PostgreSQL 18 through PgBouncer (the product's database)"
   ],
-  "tests": "npm test (Node 22): 18 files, 135 cases; test/postgres.test.js runs on PostgreSQL 18 + PgBouncer when OV_TEST_PG_URL is set (CI starts the containers), else it is listed as skipped",
+  "tests": "npm test (Node 22): 19 files, 140 cases; test/postgres.test.js runs on PostgreSQL 18 + PgBouncer when OV_TEST_PG_URL is set (CI starts the containers), else it is listed as skipped",
   "released": true,
   "deployed": false,
   "deployment": "none: a package released as git tags; products pin the tag and deploy it with their own releases",
@@ -61,7 +62,8 @@
     "Search index documents, tombstones and publication events",
     "auto-escaping SSR and a safe Markdown subset",
     "the ingest chassis: the OpenVibe.Sources client, a change cursor + pull loop with per-item savepoint isolation and an {applied|hold|removed} apply contract, a signed event consumer with an exactly-once inbox, the normalisers and PSL/registrable-host and freshness helpers the five content products share",
-    "the publication glue: gate → document → sequencer.stamp → events → outbox.enqueue on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping"
+    "the publication glue: gate → document → sequencer.stamp → events → outbox.enqueue on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping",
+    "the page document through openvibe-shared/shell page(): robots and canonical from the gate's decision, article times, prev/next, feeds, app icon, stylesheets, boost marker and the footer init"
   ],
-  "updated": "2026-09-29"
+  "updated": "2026-10-04"
 }

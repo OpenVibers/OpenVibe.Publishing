@@ -4,6 +4,30 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.2.0 — 2026-10-04
+
+**Additive: one new entry point, `openvibe-publishing/layout`.** No existing export, table layout, reason
+code or document shape changes; a product on v1.1.0 upgrades by pinning v1.2.0.
+`require('openvibe-publishing')` exposes `.layout` lazily.
+
+### Added — `openvibe-publishing/layout`
+
+- `renderDocument(o)` — the page document the seven publication sites (Wiki, Blog, News, Reviews, Deals,
+  Coupons, Trade) each hand-wrote, composed by `openvibe-shared/shell` `page()` (T11 shell adoption).
+  The gate's decision stays the robots source: `robots` is `decision.robots` and the canonical is
+  `decision.canonical || o.canonical`; without a decision (or an explicit `robots`) it throws a
+  `TypeError`, so no page is ever indexable by default. It adds the publication extras to the shell's
+  head (article published/modified times, prev/next, feed links, the app icon, the site stylesheet,
+  shared stylesheets, the site's scripts, the boost marker, referrer, extra head markup), the body frame
+  (skip link, `#navbar-mount`, header, the no-JavaScript account bar, `<main>`) and the footer init the
+  shell never emits (`window.__OV_PAGE` + `OpenVibeFooter.init`). Every value reaching markup is escaped;
+  the boot JSON escapes `<`. Styling is unchanged. Needs `openvibe-shared` ≥ 2.6.0 (`shell`); the other
+  entry points keep the `>=1.5.0` peer range.
+
+### Changed
+
+- Tests pin `openvibe-shared` v2.6.0 (was v2.5.0).
+
 ## 1.1.0 — 2026-09-29
 
 **Additive: two new entry points, `openvibe-publishing/ingest` and `openvibe-publishing/publication`.**
