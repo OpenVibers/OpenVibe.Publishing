@@ -1,6 +1,6 @@
 {
   "name": "openvibe-publishing",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Shared publishing packages for the OpenVibe publication products, on PostgreSQL through openvibe-sdk/db: revisions, scheduling, taxonomy, citations, media attachments, discussion references, the SEO indexability gate, authorship, index hooks, SSR helpers, the ingest chassis (Sources client, change cursor, signed event consumer, normalisers, PSL) and the publication glue. Packages, not an authority.",
   "main": "index.js",
   "exports": {
@@ -18,7 +18,8 @@
     "./ssr": "./lib/ssr.js",
     "./ai": "./lib/ai.js",
     "./ingest": "./lib/ingest.js",
-    "./publication": "./lib/publication.js"
+    "./publication": "./lib/publication.js",
+    "./layout": "./lib/layout.js"
   },
   "files": [
     "index.js",
@@ -52,7 +53,7 @@
     "ajv-formats": "^3.0.1",
     "openvibe-contracts": "https://codeload.github.com/OpenVibers/OpenVibe.Contracts/tar.gz/refs/tags/v0.76.0",
     "openvibe-sdk": "https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.15.0",
-    "openvibe-shared": "https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v2.5.0",
+    "openvibe-shared": "https://codeload.github.com/OpenVibers/OpenVibe.Shared/tar.gz/refs/tags/v2.6.0",
     "pg": "^8.23.0"
   }
 }
