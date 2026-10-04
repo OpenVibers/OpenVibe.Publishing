@@ -4,6 +4,24 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.3.0 — 2026-10-04
+
+**Additive: `layout.renderDocument` now forwards the AI summary to the shell.** No existing export,
+table layout, reason code or document shape changes; a product on v1.2.0 upgrades by pinning v1.3.0.
+Every option defaults to what the product already renders, so a product that passes none of them is
+byte-identical.
+
+### Changed — `openvibe-publishing/layout`
+
+- `renderDocument(o)` passes four options through to `shell.page`, which builds them with
+  `seo.pageSummary`: **`summary`** (one-line AI summary), **`facts`** (`[[key, value], string]` or
+  `[string]` rows), **`updated`** (ISO date) and **`url`** (absolute; defaults to the document's
+  canonical). With a summary the document carries `<meta name="ai-summary">` and a `WebPage` JSON-LD
+  tag in `<head>`, and with facts the `<noscript><section data-ai-summary>` block at the top of
+  `<body>`; `updated` becomes `dateModified`. Nothing is invented: without a summary none of that is
+  emitted, an omitted fact or date is left out of the block, and `url` is only ever the caller's or
+  the canonical's. Styling is unchanged.
+
 ## 1.2.0 — 2026-10-04
 
 **Additive: one new entry point, `openvibe-publishing/layout`.** No existing export, table layout, reason
