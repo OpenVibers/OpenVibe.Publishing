@@ -85,4 +85,26 @@ test('no release, referrer, css or account: those extras are left out', () => {
     assert.match(out, /window\.__OV_PAGE = \{"navbar":\{"service":"blog"\},"footer":\{"service":"blog","variant":"compact"\}\}/);
 });
 
+test('summary reaches the shell, so the page carries the ai-summary meta, the facts block and the url', () => {
+    const out = renderDocument(doc({
+        summary: 'A story, in one line.', facts: [['Rating', '4/5'], ['Published', '2026-10-01']],
+        updated: '2026-10-02T09:00:00Z',
+    }));
+    assert.match(out, /<meta name="ai-summary" content="A story, in one line\.">/);
+    assert.match(out, /<noscript><section data-ai-summary><h2>A story · OpenVibe\.News<\/h2><p>A story, in one line\.<\/p><ul><li>Rating: 4\/5<\/li><li>Published: 2026-10-01<\/li><\/ul><\/section><\/noscript>/);
+    assert.match(out, /"dateModified":"2026-10-02T09:00:00\.000Z"/);
+    assert.match(out, /"url":"https:\/\/openvibe\.news\/a\/original"/);
+});
+
+test('without a summary no ai-summary meta, facts block or WebPage tag is invented', () => {
+    const out = renderDocument(doc());
+    assert.doesNotMatch(out, /ai-summary|data-ai-summary|"@type":"WebPage"/);
+});
+
+test('url defaults to the canonical, so an explicit url wins', () => {
+    const own = renderDocument(doc({ summary: 'S', url: 'https://openvibe.news/a/explicit' }));
+    assert.match(own, /"url":"https:\/\/openvibe\.news\/a\/explicit"/);
+    assert.doesNotMatch(own, /"url":"https:\/\/openvibe\.news\/a\/original"/);
+});
+
 run();

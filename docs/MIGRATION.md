@@ -53,6 +53,27 @@ The five content products (News, Reviews, Deals, Coupons, Trade) each delete the
 - **Test:** the product's own suite (`ov test`), including its ingest and publication tests; the
   Publishing side is `test/ingest.test.js` and `test/publication.test.js`.
 
+## v1.2.0 → v1.3.0
+
+Additive: `layout.renderDocument` forwards the AI summary to the shell. Everything else is unchanged,
+and a product that passes none of the four options renders exactly as on v1.2.0.
+
+- **package.json:** `"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.3.0"`.
+  `openvibe-shared` stays at v2.6.0 or later (that is where `seo.pageSummary` and the shell's `summary`
+  support already live).
+- **Lockfile:** copy the `node_modules/openvibe-publishing` entry (`1.3.0`, the matching `resolved`,
+  the real `integrity`) from a product already on the tag.
+- **What changes in the product:** pass `summary` on the home render (and on any other page that has
+  a real one-line summary, e.g. an article or a review), so the `ai-summary` meta lands on the page.
+  - `layout.renderDocument({ …, summary, facts, updated, url })` — `summary` is the one-line AI
+    summary, `facts` the `[[key, value], string]` (or `[string]`) rows, `updated` the ISO date, `url`
+    absolute and defaulting to the canonical.
+  - `summary` alone gives `<meta name="ai-summary">` plus a `WebPage` JSON-LD tag; `facts` gives the
+    `<noscript><section data-ai-summary>` block; `updated` becomes `dateModified`.
+  - **Only pass what the facts support.** A missing rating, price, date or author is left out of the
+    facts block, never defaulted — the same rule as every other structured output here.
+- **Test:** the product's page/render tests (`ov test`); Publishing's side is `test/layout.test.js`.
+
 ## v1.1.0 → v1.2.0
 
 Adds `openvibe-publishing/layout`; nothing existing changes. The seven publication sites each hand-wrote
