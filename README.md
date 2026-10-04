@@ -3,13 +3,14 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, **1.2.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
+**Status:** alpha, **1.3.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
 layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
 async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
 store gives its DDL as `schema(prefix)` for the product's migrations. v1.1.0 adds the shared ingest
 chassis (`openvibe-publishing/ingest`) and publication glue (`openvibe-publishing/publication`) —
 additive, no existing export changed. v1.2.0 adds `openvibe-publishing/layout`, the page document the
-seven sites render through `openvibe-shared/shell` (additive). The exit proof (`examples/two-products`) runs in `npm test`.
+seven sites render through `openvibe-shared/shell` (additive). v1.3.0 forwards the AI summary, facts,
+`updated` and `url` through `layout.renderDocument` to the shell (additive). The exit proof (`examples/two-products`) runs in `npm test`.
 Releases v0.1.0 to v1.0.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). All seven products (Wiki and
 Blog, public at openvibe.wiki and openvibe.blog; News, Reviews, Deals, Coupons and Trade, deployed
 loopback-only, not launched) run v1.0.0 on PostgreSQL today; the five content products move to v1.1.0 as
@@ -76,7 +77,7 @@ Every module is its own entry point and can be used alone.
 Pin the release tarball, like every OpenVibe package (never a `file:` link or a vendored copy):
 
 ```json
-"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.2.0",
+"openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.3.0",
 "openvibe-sdk": "https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.15.0",
 "pg": "^8.23.0"
 ```
