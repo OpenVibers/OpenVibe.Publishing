@@ -177,21 +177,9 @@ order).
 **Tests.** `createDb({ pglite: true })`, then `await store.ensureSchema()` (or `db.migrate({ dir })`
 with the product's migrations): real PostgreSQL in-process.
 
-## Moving a product from 0.4 to 1.0
+## Moving a product between releases
 
-Mostly mechanical; [CHANGELOG.md](CHANGELOG.md) lists every change. In short:
-
-1. Pin `openvibe-publishing` v1.0.0, `openvibe-sdk` v0.15.0 and `pg`; `@electric-sql/pglite` for tests.
-2. Put `publishing.schema({ … })` for the stores and prefixes the product uses into its
-   `migrations/0001_initial.sql` (with its own tables), so the SDK's `importSqlite` finds every table
-   when it moves the SQLite data.
-3. Pass the `openvibe-sdk/db` handle instead of the better-sqlite3 one, and `await` every store call.
-4. Replace `db.transaction(() => { … })()` around store calls with `await db.tx(async (t) => { … })`
-   and pass `t` as the first argument of every store call inside it.
-5. Beyond `await`: `stamp(t, doc)` takes the handle first; `redirects.resolve()`'s `currentPath`
-   may be async (and should be); rows come back with parsed JSON (`fields`, `meta`, `ref`, `result`)
-   exactly as the store shapes already returned them; list methods cap at their `limit`; loops of
-   per-item reads in list routes become the batch reads above.
+See [docs/MIGRATION.md](docs/MIGRATION.md): 0.4 → 1.0, 1.0 → 1.1 and 1.1 → 1.2, step by step.
 
 ## The indexability gate
 
