@@ -13,8 +13,8 @@ seven sites render through `openvibe-shared/shell` (additive). v1.3.0 forwards t
 `updated` and `url` through `layout.renderDocument` to the shell (additive). The exit proof (`examples/two-products`) runs in `npm test`.
 Releases v0.1.0 to v1.0.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). All seven products (Wiki and
 Blog, public at openvibe.wiki and openvibe.blog; News, Reviews, Deals, Coupons and Trade, deployed
-loopback-only, not launched) run v1.0.0 on PostgreSQL today; the five content products move to v1.1.0 as
-each adopts the chassis, and no product is released until its conversion lands.
+loopback-only, not launched) pin v1.3.0 on PostgreSQL today; each adopts a release by pinning its tag,
+and no product is released until its conversion lands.
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.
 
