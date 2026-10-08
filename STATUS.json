@@ -39,10 +39,10 @@
   "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
   "contracts": "openvibe-contracts v0.112.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
-  "sdk": "openvibe-sdk v0.15.0",
+  "sdk": "openvibe-sdk v0.35.0",
   "shared": "openvibe-shared v2.6.0",
   "dependsOn": [
-    "openvibe-sdk >=0.15.0 (peer; tests pin v0.15.0)",
+    "openvibe-sdk >=0.15.0 (peer; tests pin v0.35.0)",
     "openvibe-shared >=1.5.0 (optional peer; tests pin v2.6.0; layout needs >=2.6.0)",
     "PostgreSQL 18 through PgBouncer (the product's database)"
   ],

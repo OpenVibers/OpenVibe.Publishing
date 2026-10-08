@@ -78,7 +78,7 @@ Pin the release tarball, like every OpenVibe package (never a `file:` link or a 
 
 ```json
 "openvibe-publishing": "https://codeload.github.com/OpenVibers/OpenVibe.Publishing/tar.gz/refs/tags/v1.3.0",
-"openvibe-sdk": "https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.15.0",
+"openvibe-sdk": "https://codeload.github.com/OpenVibers/OpenVibe.SDK/tar.gz/refs/tags/v0.35.0",
 "pg": "^8.23.0"
 ```
 
@@ -406,7 +406,7 @@ eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --us
 
 - `openvibe-sdk` ≥ 0.15.0 (`openvibe-sdk/db`), a peer dependency supplied by the consumer: its
   `createDb` handle (and `pg` in production, `@electric-sql/pglite` in tests) reach the stores through
-  the product. Tests pin v0.15.0.
+  the product. Tests pin v0.35.0.
 - PostgreSQL 18 (through PgBouncer in transaction mode), the product's own database (ADR-035).
 - `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v1.25.0).
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
@@ -415,6 +415,6 @@ eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --us
 
 <!-- versions:start -->
 - openvibe-contracts: v0.112.0
-- openvibe-sdk: v0.15.0
+- openvibe-sdk: v0.35.0
 - openvibe-shared: v2.6.0
 <!-- versions:end -->
