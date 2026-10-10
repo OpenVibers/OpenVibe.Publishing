@@ -1,6 +1,6 @@
 {
   "name": "openvibe-publishing",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Shared publishing packages for the OpenVibe publication products, on PostgreSQL through openvibe-sdk/db: revisions, scheduling, taxonomy, citations, media attachments, discussion references, the SEO indexability gate, authorship, index hooks, SSR helpers, the ingest chassis (Sources client, change cursor, signed event consumer, normalisers, PSL) and the publication glue. Packages, not an authority.",
   "main": "index.js",
   "exports": {
@@ -19,7 +19,8 @@
     "./ai": "./lib/ai.js",
     "./ingest": "./lib/ingest.js",
     "./publication": "./lib/publication.js",
-    "./layout": "./lib/layout.js"
+    "./layout": "./lib/layout.js",
+    "./search-feed": "./lib/search-feed.js"
   },
   "files": [
     "index.js",

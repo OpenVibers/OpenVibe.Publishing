@@ -5,7 +5,7 @@
   "wave": "W15",
   "kind": "packages",
   "package": "openvibe-publishing",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "plan": "OpenVibe End-to-End Realignment & Implementation Plan, revision 3 (20 Sep 2026)",
   "runtime": null,
   "port": null,
@@ -25,7 +25,8 @@
     "ssr",
     "ingest",
     "publication",
-    "layout"
+    "layout",
+    "search-feed"
   ],
   "consumers": [
     "OpenVibe.Wiki (v1.3.0 on PostgreSQL; public at https://openvibe.wiki)",
