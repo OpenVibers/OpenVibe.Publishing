@@ -67,10 +67,11 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/ssr` | auto-escaping `html` tagged templates with `raw()`, a safe Markdown subset, plain-text extraction, word count, server pagination, breadcrumbs, diff markup, honest `<time>` | — |
 | `openvibe-publishing/ingest` | The shared ingest chassis: the OpenVibe.Sources client, a named change cursor and the `pullChanges` loop (per-item savepoint isolation, `{applied\|hold\|removed}`), the signed event consumer with an exactly-once inbox, the shared normalisers, and the generic PSL/registrable-host and freshness helpers | `<prefix>_ingest_cursor` |
 | `openvibe-publishing/publication` | The shared publication glue: gate → document → `sequencer.stamp` → events → `outbox.enqueue` on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping; it emits exactly `search.index-document@1` and the product's events | — |
+| `openvibe-publishing/search-feed` | Record pages (listings, job ads, help articles, catalog items) in OpenVibe.Search: `sync`/`remove` on the write's transaction, and a `sweep()` that re-sends only what changed and tombstones vanished rows | — |
 | `openvibe-publishing/layout` | `renderDocument(o)`: the whole page through `openvibe-shared/shell` `page()` (≥ 2.6.0), with robots and canonical from the gate's decision (throws without one), article times, prev/next, feeds, the app icon, stylesheets, the boost marker, the body frame and the footer init | — |
 
 `require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`,
-`.ingest`, `.publication`, `.layout`, …), plus `schema({ … })`, the DDL of several stores at once (below).
+`.ingest`, `.publication`, `.searchFeed`, `.layout`, …), plus `schema({ … })`, the DDL of several stores at once (below).
 
 ## Install
 

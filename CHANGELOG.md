@@ -4,6 +4,27 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.4.0 — 2026-10-10
+
+**Additive: `openvibe-publishing/search-feed`.** No existing export, table layout, reason code or document shape
+changes; a product on v1.3.0 upgrades by pinning v1.4.0.
+
+### Added — `openvibe-publishing/search-feed`
+
+- `createSearchFeed({ owner, db, outbox, baseUrl, types, now?, indexnow?, log? })` puts a product's record pages
+  (listings, job ads, help articles, catalog items, quests) in OpenVibe.Search through the publication glue: one
+  `search.index-document@1` per row on the caller's transaction handle, revisions from the index sequencer
+  (`<owner>_index_revisions`), and the product's outbox. Each type gives `page(row)`, `document(row)` (title, summary,
+  body, facets, dates, authorship, provenance, plus `listed` and `noindex`) and `rows(afterId, limit)`; `exists(ids)`
+  is optional.
+- `sync(t, type, row)` and `remove(t, type, id)` run inside the write's transaction. An unchanged row sends nothing,
+  `listed: false` is a tombstone, and an id Search never had sends nothing.
+- `sweep()` brings Search level with the tables: every row in id order, re-sending only what changed, and a tombstone
+  for each id whose row is gone (with `exists`). One transaction per row; a failing row is counted and logged and the
+  pass goes on. Concurrent calls share one pass.
+- Indexability follows the page's own robots (`noindex`) and expiry (`expiresAt`), never the publication gate's word
+  count: a record is not an article.
+
 ## 1.3.0 — 2026-10-04
 
 **Additive: `layout.renderDocument` now forwards the AI summary to the shell.** No existing export,
