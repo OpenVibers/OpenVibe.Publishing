@@ -51,7 +51,8 @@ test('the package owns no runtime: no listen(), no database of its own, no env c
 test('better-sqlite3 is gone from the package; openvibe-sdk is a peer (one copy of the data layer per service)', () => {
     for (const k of ['dependencies', 'peerDependencies', 'devDependencies', 'optionalDependencies']) assert.ok(!(pkg[k] || {})['better-sqlite3'], k);
     assert.strictEqual(pkg.peerDependencies['openvibe-sdk'], '>=0.15.0');
-    assert.match(pkg.devDependencies['openvibe-sdk'], /refs\/tags\/v0\.35\.0$/);
+    // A release tag's tarball (the pin bot moves the version; any tag is fine, a branch or file: link is not).
+    assert.match(pkg.devDependencies['openvibe-sdk'], /^https:\/\/codeload\.github\.com\/OpenVibers\/OpenVibe\.SDK\/tar\.gz\/refs\/tags\/v\d+\.\d+\.\d+$/);
     assert.ok(!(pkg.dependencies || {})['openvibe-sdk']);
 });
 
