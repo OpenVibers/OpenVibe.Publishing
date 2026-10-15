@@ -39,7 +39,7 @@
   ],
   "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
-  "contracts": "openvibe-contracts v0.143.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
+  "contracts": "openvibe-contracts v0.186.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
   "sdk": "openvibe-sdk v0.44.0",
   "shared": "openvibe-shared v4.2.0",
   "dependsOn": [
