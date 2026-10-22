@@ -4,6 +4,14 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.4.1 — 2026-10-22
+
+**Fix: `seo.canonicalUrl` keeps a path with several leading slashes on the site.** A request path such as `//feed/` or
+`//wp-includes/wlwmanifest.xml` (scanners send them) was read as a protocol-relative URL naming another host, so
+`canonicalUrl` threw "path must stay on the origin" and News, Deals and Blog answered 500. A run of leading slashes
+(or backslashes) now counts as one: `canonicalUrl('https://openvibe.news', '//feed/')` is `https://openvibe.news/feed`.
+An absolute URL on another origin still throws. No export, table layout, reason code or document shape changes.
+
 ## 1.4.0 — 2026-10-10
 
 **Additive: `openvibe-publishing/search-feed`.** No existing export, table layout, reason code or document shape
