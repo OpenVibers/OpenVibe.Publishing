@@ -99,6 +99,10 @@ test('canonicalUrl', () => {
     assert.strictEqual(seo.canonicalUrl('https://openvibe.blog/', '/alex/posts/bread/?utm_source=x&page=2#top', { query: ['page'] }), 'https://openvibe.blog/alex/posts/bread?page=2');
     assert.strictEqual(seo.canonicalUrl('https://openvibe.blog', '/'), 'https://openvibe.blog/');
     assert.throws(() => seo.canonicalUrl('https://openvibe.blog', 'https://evil.test/x'), /origin/);
+    // A request path with leading slashes is a path on this site, not a protocol-relative host (it was a 500 on News).
+    assert.strictEqual(seo.canonicalUrl('https://openvibe.news', '//feed/'), 'https://openvibe.news/feed');
+    assert.strictEqual(seo.canonicalUrl('https://openvibe.news', '//evil.test/wp-includes/x.xml'), 'https://openvibe.news/evil.test/wp-includes/x.xml');
+    assert.strictEqual(seo.canonicalUrl('https://openvibe.news', '/\\evil.test/x'), 'https://openvibe.news/evil.test/x');
     assert.throws(() => seo.canonicalUrl('ftp://x'), /http/);
 });
 
