@@ -13,10 +13,12 @@ seven sites render through `openvibe-shared/shell` (additive). v1.3.0 forwards t
 `updated` and `url` through `layout.renderDocument` to the shell (additive). v1.4.0 adds `openvibe-publishing/search-feed`,
 which puts a record product's pages in OpenVibe.Search (additive). v1.4.1 keeps a request path that starts with
 several slashes (`//feed/`) on the site in `seo.canonicalUrl`, where it threw (a 500 on News, Deals and Blog). The exit proof (`examples/two-products`) runs in `npm test`.
-Releases v0.1.0 to v1.4.1 are tagged (see [CHANGELOG.md](CHANGELOG.md)). All seven publication products pin v1.3.0
-on PostgreSQL today, and all seven are public: openvibe.wiki, openvibe.blog, openvibe.news, openvibe.reviews,
-openvibe.deals, openvibe.coupons and openvibe.trade. Seven record products pin v1.4.0 for the search feed: Work, Rent,
-Help, Inventory, Quest, Food and Host. Each adopts a release by pinning its tag.
+Releases v0.1.0 to v1.4.1 are tagged (see [CHANGELOG.md](CHANGELOG.md)). Fifteen products pin a release. The seven
+publication products run on PostgreSQL and are public: openvibe.wiki, openvibe.blog, openvibe.news, openvibe.reviews,
+openvibe.deals, openvibe.coupons and openvibe.trade (on 2026-10-22 Blog, News and Deals pinned v1.4.1, the other four
+v1.3.0). Seven more use `search-feed` to put their pages in OpenVibe.Search: Work, Rent, Help, Inventory, Quest, Host and
+OpenVibe.Games (its creator worlds); Food uses the AI draft client. Each adopts a release by pinning its tag, and
+OpenVibe.Contracts' `docs/ESTATE.md` lists every pin.
 **Package:** `openvibe-publishing` (CommonJS, Node ≥ 20, production runs Node 22).
 **License:** MIT, like OpenVibe.Shared.
 
@@ -409,9 +411,9 @@ eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --us
 
 - `openvibe-sdk` ≥ 0.15.0 (`openvibe-sdk/db`), a peer dependency supplied by the consumer: its
   `createDb` handle (and `pg` in production, `@electric-sql/pglite` in tests) reach the stores through
-  the product. Tests pin v0.35.0.
+  the product. Tests pin v0.60.0.
 - PostgreSQL 18 (through PgBouncer in transaction mode), the product's own database (ADR-035).
-- `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v1.25.0).
+- `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v4.4.0).
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
   and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.209.0, a
   devDependency: nothing in `lib/` needs it at runtime).
