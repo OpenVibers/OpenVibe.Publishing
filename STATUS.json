@@ -48,7 +48,7 @@
   "consumerPins": "each consumer pins one release tag; OpenVibe.Contracts docs/ESTATE.md lists them",
   "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
-  "contracts": "openvibe-contracts v0.214.1 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
+  "contracts": "openvibe-contracts v0.215.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
   "sdk": "openvibe-sdk v0.65.0",
   "shared": "openvibe-shared v4.15.2",
   "dependsOn": [
