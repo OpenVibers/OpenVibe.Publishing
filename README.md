@@ -415,11 +415,11 @@ eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --us
 - PostgreSQL 18 (through PgBouncer in transaction mode), the product's own database (ADR-035).
 - `openvibe-shared` ≥ 1.5.0 (`seo`), a peer dependency supplied by the consumer (tests use v4.4.0).
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
-  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.215.0, a
+  and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.216.0, a
   devDependency: nothing in `lib/` needs it at runtime).
 
 <!-- versions:start -->
-- openvibe-contracts: v0.215.0
+- openvibe-contracts: v0.216.0
 - openvibe-sdk: v0.65.0
 - openvibe-shared: v4.15.2
 <!-- versions:end -->
