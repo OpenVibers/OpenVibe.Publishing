@@ -23,7 +23,7 @@ const count = (s, re) => (s.match(re) || []).length;
 
 test('renderDocument composes one whole document through openvibe-shared/shell', () => {
     const out = renderDocument(doc());
-    assert.match(out, /^<!doctype html>\n<html lang="en">/);
+    assert.match(out, /^<!doctype html>\n<html lang="en" data-ov-service="news">/);
     assert.strictEqual(count(out, /<title>/g), 1);
     assert.match(out, /<title>A story · OpenVibe\.News<\/title>/);
     assert.strictEqual(count(out, /<script type="application\/ld\+json">/g), 1);
