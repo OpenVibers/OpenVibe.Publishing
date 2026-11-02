@@ -4,6 +4,34 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.5.0 — 2026-11-02
+
+**Additive: `openvibe-publishing/search-relay`.** No existing export, table layout, reason code or document shape
+changes; a product on v1.4.x upgrades by pinning v1.5.0.
+
+### Added — `openvibe-publishing/search-relay`
+
+`createSearchRelay({ db, table, owner, searchUrl, auth, … })` delivers the Search documents a product queued in its own
+outbox table (`event_id, topic, payload, created_at, published_at, attempts, last_error, next_attempt_at, claimed_at,
+claimed_by`) through OpenVibe.Search's owner API: PUT `/api/v1/documents/:owner/:type/:id` for a document, DELETE with
+`?revision=` for a tombstone, with the product's service token (`search.document.write` on `openvibe.search`; `auth` is
+`{ authHeaders(), invalidate() }`, e.g. openvibe-contracts `serviceAuth.createTokenClient`).
+
+- Rows go oldest first, at most `maxPerTick` (100) a tick: the owner API allows a service 120 writes a minute. Within
+  a tick only a document's newest row is sent; older ones are marked `superseded`.
+- 2xx sets `published_at`. 409 `search.stale_revision` is done (Search holds a newer revision). 409
+  `search.revision_conflict` is sent once more as the stored revision + 1.
+- 5xx, 408, 401 (which drops the token) and network errors retry with backoff, 15 s doubling to an hour. 429 stops
+  the tick until Retry-After and releases the rest unclaimed, without counting an attempt.
+- Any other refusal (a bad document, not the owner) and a payload naming another owner are set aside for good:
+  `published_at` is set, `last_error` starts `rejected`, and the reason is logged.
+- A claim is a five-minute lease (`FOR UPDATE SKIP LOCKED`), so two processes never send one row at once.
+- `start()` (a tick five seconds after boot, then every minute), `kick()` (a tick in two seconds), `drain()`,
+  `stop()`, `status()` (`pending`, totals, last run, last error, pause). Off without `searchUrl` or `auth`.
+
+Why: Meme, Exchange and Fun queue a document per change into `<product>_outbox` and left the delivery for later;
+118 meme entries and 104 Exchange listings had never reached Search (2026-11-02).
+
 ## 1.4.1 — 2026-10-22
 
 **Fix: `seo.canonicalUrl` keeps a path with several leading slashes on the site.** A request path such as `//feed/` or
