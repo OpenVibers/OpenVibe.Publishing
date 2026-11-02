@@ -3,7 +3,7 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, **1.4.1**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
+**Status:** alpha, **1.5.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
 layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
 async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
 store gives its DDL as `schema(prefix)` for the product's migrations. v1.1.0 adds the shared ingest
@@ -12,8 +12,10 @@ additive, no existing export changed. v1.2.0 adds `openvibe-publishing/layout`, 
 seven sites render through `openvibe-shared/shell` (additive). v1.3.0 forwards the AI summary, facts,
 `updated` and `url` through `layout.renderDocument` to the shell (additive). v1.4.0 adds `openvibe-publishing/search-feed`,
 which puts a record product's pages in OpenVibe.Search (additive). v1.4.1 keeps a request path that starts with
-several slashes (`//feed/`) on the site in `seo.canonicalUrl`, where it threw (a 500 on News, Deals and Blog). The exit proof (`examples/two-products`) runs in `npm test`.
-Releases v0.1.0 to v1.4.1 are tagged (see [CHANGELOG.md](CHANGELOG.md)). Fifteen products pin a release. The seven
+several slashes (`//feed/`) on the site in `seo.canonicalUrl`, where it threw (a 500 on News, Deals and Blog). v1.5.0 adds
+`openvibe-publishing/search-relay`, which delivers the Search documents a product queued in its own outbox table
+through Search's owner API (Meme, Exchange and Fun queue them; additive). The exit proof (`examples/two-products`) runs in `npm test`.
+Releases v0.1.0 to v1.5.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). Fifteen products pin a release. The seven
 publication products run on PostgreSQL and are public: openvibe.wiki, openvibe.blog, openvibe.news, openvibe.reviews,
 openvibe.deals, openvibe.coupons and openvibe.trade (on 2026-10-22 Blog, News and Deals pinned v1.4.1, the other four
 v1.3.0). Seven more use `search-feed` to put their pages in OpenVibe.Search: Work, Rent, Help, Inventory, Quest, Host and
@@ -72,10 +74,11 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/ingest` | The shared ingest chassis: the OpenVibe.Sources client, a named change cursor and the `pullChanges` loop (per-item savepoint isolation, `{applied\|hold\|removed}`), the signed event consumer with an exactly-once inbox, the shared normalisers, and the generic PSL/registrable-host and freshness helpers | `<prefix>_ingest_cursor` |
 | `openvibe-publishing/publication` | The shared publication glue: gate → document → `sequencer.stamp` → events → `outbox.enqueue` on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping; it emits exactly `search.index-document@1` and the product's events | — |
 | `openvibe-publishing/search-feed` | Record pages (listings, job ads, help articles, catalog items) in OpenVibe.Search: `sync`/`remove` on the write's transaction, and a `sweep()` that re-sends only what changed and tombstones vanished rows | — |
+| `openvibe-publishing/search-relay` | Deliver a product's queued Search documents (its `<product>_outbox` rows: one `search.index-document@1` or tombstone each) through Search's owner API with the product's service token: oldest first, older rows of a document superseded, a stale revision done, a conflict sent again one revision up, 5xx/network backoff, 429 pauses until Retry-After, other refusals logged and set aside; at most 100 a tick | — (the product's outbox) |
 | `openvibe-publishing/layout` | `renderDocument(o)`: the whole page through `openvibe-shared/shell` `page()` (≥ 2.6.0), with robots and canonical from the gate's decision (throws without one), article times, prev/next, feeds, the app icon, stylesheets, the boost marker, the body frame and the footer init | — |
 
 `require('openvibe-publishing')` exposes all of them lazily (`.revisions`, `.seo`, `.indexHooks`,
-`.ingest`, `.publication`, `.searchFeed`, `.layout`, …), plus `schema({ … })`, the DDL of several stores at once (below).
+`.ingest`, `.publication`, `.searchFeed`, `.searchRelay`, `.layout`, …), plus `schema({ … })`, the DDL of several stores at once (below).
 
 ## Install
 

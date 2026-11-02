@@ -3,7 +3,7 @@
  * openvibe-publishing — every module is also its own entry point and can be used alone:
  *   require('openvibe-publishing/revisions'), …/schedule, …/taxonomy, …/citations, …/media,
  *   …/discussion, …/seo, …/authorship, …/index-hooks, …/ssr, …/ai, …/ingest, …/publication,
- *   …/search-feed, …/layout
+ *   …/search-feed, …/search-relay, …/layout
  * This root export loads each one lazily, on first access.
  *
  * schema({ revisions: 'wiki_page', citations: 'wiki', … }) is the DDL of every store a product uses,
@@ -24,6 +24,7 @@ const MODULES = {
     ingest: './lib/ingest',
     publication: './lib/publication',
     searchFeed: './lib/search-feed',
+    searchRelay: './lib/search-relay',
     layout: './lib/layout',
 };
 
