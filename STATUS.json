@@ -49,7 +49,7 @@
   "consumerPins": "each consumer pins one release tag; OpenVibe.Contracts docs/ESTATE.md lists them",
   "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
-  "contracts": "openvibe-contracts v0.222.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
+  "contracts": "openvibe-contracts v0.289.1 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
   "sdk": "openvibe-sdk v0.82.0",
   "shared": "openvibe-shared v4.109.2",
   "dependsOn": [
@@ -78,5 +78,5 @@
     "the publication glue: gate → document → sequencer.stamp → events → outbox.enqueue on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping",
     "the page document through openvibe-shared/shell page(): robots and canonical from the gate's decision, article times, prev/next, feeds, app icon, stylesheets, boost marker and the footer init, plus the AI summary (ai-summary meta, WebPage JSON-LD, facts block) when the caller passes summary/facts/updated/url"
   ],
-  "updated": "2026-11-03"
+  "updated": "2026-11-05"
 }
