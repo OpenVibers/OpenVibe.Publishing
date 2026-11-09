@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use OpenVibe.Publishing in research or a product, cite it as below."
+title: openvibe-publishing
+type: software
+authors:
+  - name: OpenVibe
+    alias: OpenVibers
+    website: https://openvibe.network
+repository-code: https://github.com/OpenVibers/OpenVibe.Publishing
+url: https://openvibe.network
+license: MIT
+abstract: "Publishing packages for drafts, revisions, citations, an SEO gate, feeds and structured data."
+keywords:
+  - openvibe
+  - cms
+  - feeds
+  - json-ld
+  - publishing

@@ -3,6 +3,9 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
+**Docs:** https://openvibe.services · **For AI:** https://openvibe.network/llms.txt
+**Install and test:** `npm ci && npm test` (Node 20 or newer)
+
 **Status:** alpha, **1.6.1**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
 layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
 async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
