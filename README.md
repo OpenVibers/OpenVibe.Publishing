@@ -6,7 +6,7 @@
 **Docs:** https://openvibe.services · **For AI:** https://openvibe.network/llms.txt
 **Install and test:** `npm ci && npm test` (Node 20 or newer)
 
-**Status:** alpha, **1.6.1**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
+**Status:** alpha, **1.7.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
 layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
 async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
 store gives its DDL as `schema(prefix)` for the product's migrations. v1.1.0 adds the shared ingest
@@ -19,7 +19,7 @@ several slashes (`//feed/`) on the site in `seo.canonicalUrl`, where it threw (a
 `openvibe-publishing/search-relay`, which delivers the Search documents a product queued in its own outbox table
 through Search's owner API (Meme, Exchange and Fun queue them; additive). The exit proof (`examples/two-products`) runs in `npm test`.
 v1.6.0 adds `openvibe-publishing/blocks`, the rich block model Blog and Wiki share: a body is Markdown plus
-blocks, parsed, validated, rendered server-side and flattened to text (additive). Releases v0.1.0 to v1.6.1 are tagged (see [CHANGELOG.md](CHANGELOG.md)). Fifteen products pin a release. The seven
+blocks, parsed, validated, rendered server-side and flattened to text (additive). Releases v0.1.0 to v1.7.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). Fifteen products pin a release. The seven
 publication products run on PostgreSQL and are public: openvibe.wiki, openvibe.blog, openvibe.news, openvibe.reviews,
 openvibe.deals, openvibe.coupons and openvibe.trade (on 2026-10-22 Blog, News and Deals pinned v1.4.1, the other four
 v1.3.0). Seven more use `search-feed` to put their pages in OpenVibe.Search: Work, Rent, Help, Inventory, Quest, Host and

@@ -4,6 +4,17 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.7.0 — 2026-11-09
+
+- **`openvibe-publishing/blocks.css`: one stylesheet for every block the library renders** (additive). The look of
+  an infobox, a timeline, a stat, a quote, a callout, a gallery, a compare, a hero, a section with its reactions,
+  patch notes, a clip, a video, a link out and a missing picture, on the shared theme tokens only (each with a
+  fallback) and with no site's classes. A product serves this file and links it wherever it renders a body; it places
+  blocks (its text measure, an infobox beside a lead) and does not restyle them. Before this the rules lived in Blog
+  alone, so a wiki article showed its blocks as bare browser markup.
+- `test/blocks-css.test.js` fails when a renderer emits a class the sheet has no rule for, when a callout tone has no
+  rule, when a token has no fallback, or when a site class appears in the sheet.
+
 ## 1.6.1 — 2026-11-09
 
 - `blocks`: a timeline and an infobox have one row per line (1.6.0 made a whole body one row) with list markers
