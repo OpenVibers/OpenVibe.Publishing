@@ -244,3 +244,17 @@ run();
     const ok = b.render(b.parse(':::embed{url="https://example.com/x"}\n:::\n'));
     require('assert').ok(/href="https:\/\/example.com\/x"/.test(ok), ok);
 }
+
+// 1.6.1: a timeline and an infobox have one row per line; "10:45: text" keeps the time whole; list markers go.
+{
+    const b = require('../lib/blocks');
+    const assert = require('assert');
+    const tl = b.render(b.parse(':::timeline\n- 10:45: Stage two is live\n- 2026-11-09: Shared 4.168\nA note without a time\n:::\n'));
+    assert.strictEqual((tl.match(/<li class="ov-timeline-item">/g) || []).length, 3, tl);
+    assert.ok(tl.includes('<time class="ov-timeline-when" datetime="10:45">10:45</time><span class="ov-timeline-text">Stage two is live</span>'), tl);
+    assert.ok(tl.includes('datetime="2026-11-09"'), tl);
+    const ib = b.render(b.parse(':::infobox{title="Release"}\nVersion: 4.168.0\nShipped — 9 November\n:::\n'));
+    assert.strictEqual((ib.match(/<div class="ov-infobox-row">/g) || []).length, 2, ib);
+    assert.ok(ib.includes('<dt class="ov-infobox-key">Shipped</dt><dd class="ov-infobox-value">9 November</dd>'), ib);
+}
+
