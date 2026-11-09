@@ -29,6 +29,7 @@ shows its text).
   Media ids (`media`, `urlFor`); the renderer never guesses a URL and a broken object renders as an
   explicit "no longer available" placeholder.
 - `blocks.toText(tree)` → the plain text of a body: what a feed, a search document and an AI reader get.
+- `blocks.serialize(tree)` → the Markdown that parses back into the same tree: a caller who has blocks (an editor, an agent) hands Blog the Markdown it will keep, and the Markdown stays the source of truth.
 - `blocks.creditLine(credit)` → the credit of an image: an AI image says "Made with <model>", an Openverse
   or Commons image keeps its licence and its author (both linked), and nothing known means no credit line
   — an empty credit is never a fake one.

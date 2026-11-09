@@ -205,4 +205,33 @@ test('the compare, gallery, callout, stat, quote, infobox and timeline blocks re
     assert.match(html, /ov-timeline-when/);
 });
 
+test('serialize writes the Markdown that parses back into the same tree', () => {
+    const md = [
+        'Some intro.',
+        '',
+        ':::hero{art="' + MED + '" kicker="Devblog" date="2026-11-09"}',
+        'The teaser.',
+        ':::',
+        '',
+        ':::section{id="blueprint-rework" by="usr_01J8ZQ4X3M000000000000000D" react}',
+        '## Blueprint rework',
+        ':::figure{src="' + MED + '" alt="A"}',
+        ':::',
+        ':::',
+    ].join('\n');
+    const tree = blocks.parse(md);
+    const back = blocks.parse(blocks.serialize(tree));
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(back)), JSON.parse(JSON.stringify(tree)));
+    assert.match(blocks.serialize(tree), /:::hero\{art="med_/);
+    assert.match(blocks.serialize(tree), /:::section\{id="blueprint-rework"/);
+    assert.match(blocks.serialize(tree), /react/);
+});
+
+test('serialize quotes what needs quoting and writes a bare flag', () => {
+    const tree = blocks.parse(':::section{id="a-b" by="usr_01J8ZQ4X3M000000000000000D" react}\nText with "quotes"\n:::');
+    const md = blocks.serialize(tree);
+    assert.match(md, /:::section\{id="a-b" by="usr_01J8ZQ4X3M000000000000000D" react\}/);
+    assert.match(md, /Text with "quotes"/);
+});
+
 run();
