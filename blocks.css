@@ -1,0 +1,112 @@
+/* openvibe-publishing/blocks.css: the look of every block lib/blocks.js and lib/media.js render.
+ *
+ * One sheet for every site that shows a block (a blog post, a wiki article, a devblog), so a block reads the same
+ * wherever it is. It uses only the shared theme tokens (openvibe-shared's theme-loader: --accent, --border,
+ * --bg-card, --text-*), each with a fallback, and no site's own classes.
+ *
+ * A site places blocks (the measure of its text column, an infobox floated beside a lead); it does not restyle them.
+ * test/blocks-css.test.js fails when the renderer emits a class this sheet has no rule for.
+ */
+
+/* ── Pictures ── */
+.ov-media { margin: 1.2rem 0; }
+/* A figure in the text and a picture by its id are the same thing to look at. */
+.ov-figure, .ov-pic { display: block; }
+.ov-figure img, .ov-pic img { display: block; }
+.ov-media img { max-width: 100%; height: auto; border-radius: 8px; }
+.ov-media figcaption, .ov-gallery > figcaption, .ov-compare > figcaption { margin-top: 6px; font-size: .9rem; color: var(--text-muted, #7386a3); }
+.ov-media-credit { display: block; margin-top: 6px; color: var(--text-muted, #7386a3); font-size: .82rem; }
+/* A picture that is gone says so in its place; it is never a guessed address or an empty frame. */
+.ov-media-broken { margin: 1.2rem 0; }
+.ov-media-missing { padding: 28px 16px; border: 1px dashed var(--border-light, #2c3d5c); border-radius: 8px; text-align: center; color: var(--text-secondary, #96a7c2); background: var(--bg-tertiary, #172238); }
+.ov-gallery, .ov-compare { margin: 26px 0; }
+.ov-gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+.ov-gallery-grid .ov-gallery-item { margin: 0; }
+.ov-compare-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 14px; }
+.ov-compare-before, .ov-compare-after { margin: 0; }
+
+/* ── A clip, a video, a link out: one row to press, the whole width ── */
+.ov-clip, .ov-video, .ov-embed { margin: 26px 0; }
+.ov-clip > a, .ov-video > a, .ov-embed > a, .ov-embed > span { display: flex; align-items: center; min-height: 48px; padding: 10px 14px; border: 1px solid var(--border, #1f2d47); border-radius: 12px; background: var(--bg-card, #131c2e); color: var(--text-primary, #e6edf7); font-weight: 650; text-decoration: none; overflow-wrap: anywhere; }
+.ov-clip > a:hover, .ov-video > a:hover, .ov-embed > a:hover { border-color: var(--accent, #3b82f6); }
+
+/* ── A section: a big heading, who wrote it, and the readers' read at its end ── */
+.ov-section { margin: 34px 0; scroll-margin-top: calc(var(--ovnav-real-h, 56px) + 16px); }
+.ov-section > h2 { font-size: clamp(1.5rem, 1.2rem + 1.1vw, 2rem); line-height: 1.2; letter-spacing: -.015em; margin: 0 0 6px; }
+.ov-section > h2:target { color: var(--accent, #3b82f6); }
+.ov-section-by { margin: 0 0 14px; color: var(--text-muted, #7386a3); font-size: .9rem; }
+.ov-section-by a { color: var(--text-secondary, #96a7c2); }
+.ov-reactions { display: flex; align-items: center; gap: 8px; margin: 18px 0 0; }
+.ov-reactions button, .ov-react { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border, #1f2d47); border-radius: 999px; background: var(--bg-card, #131c2e); color: var(--text-primary, #e6edf7); font-size: .95rem; cursor: pointer; }
+.ov-reactions button:hover, .ov-react:hover { border-color: var(--accent, #3b82f6); }
+.ov-react-up[aria-pressed="true"], .ov-react-down[aria-pressed="true"] { border-color: var(--accent, #3b82f6); }
+.ov-react-count { color: var(--text-secondary, #96a7c2); font-variant-numeric: tabular-nums; }
+.ov-react-signin { min-height: 44px; display: inline-flex; align-items: center; color: var(--text-secondary, #96a7c2); font-size: .92rem; }
+
+/* ── The hero: a banner. Its title art fills it under a dark wash, or an accent wash stands in; the kicker is a pill
+   beside the date, and the title is the biggest thing on the page. ── */
+.ov-hero { position: relative; isolation: isolate; overflow: hidden; display: grid; gap: 10px; margin: 0 0 28px; padding: clamp(22px, 4vw, 40px);
+    border-radius: 22px; border: 1px solid var(--border, #1f2d47);
+    background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent, #3b82f6) 34%, transparent), transparent 62%),
+        linear-gradient(160deg, color-mix(in srgb, var(--accent, #3b82f6) 14%, var(--bg-card, #131c2e)), var(--bg-card, #131c2e)); }
+.ov-hero .ov-hero-art { position: absolute; inset: 0; z-index: -1; margin: 0; }
+.ov-hero .ov-hero-art img { width: 100%; height: 100%; object-fit: cover; }
+.ov-hero .ov-hero-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4, 8, 18, .18) 0%, rgba(4, 8, 18, .78) 100%); }
+.ov-hero:has(.ov-hero-art) { min-height: clamp(260px, 42vw, 420px); align-content: end; color: #fff; border-color: transparent; }
+.ov-hero:has(.ov-hero-art) .ov-hero-body p { color: rgba(255, 255, 255, .86); }
+.ov-kicker { margin: 0; color: var(--accent, #3b82f6); font-size: .86rem; font-weight: 700; }
+.ov-hero .ov-kicker { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .78rem;
+    font-weight: 750; letter-spacing: .02em; background: color-mix(in srgb, var(--accent, #3b82f6) 16%, transparent); }
+.ov-hero .ov-kicker::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.ov-hero:has(.ov-hero-art) .ov-kicker { color: #fff; background: rgba(255, 255, 255, .18); backdrop-filter: blur(6px); }
+.ov-hero-date { margin: 2px 0 0; font-size: .86rem; color: var(--text-muted, #7386a3); }
+.ov-hero:has(.ov-kicker) { grid-template-columns: auto 1fr; column-gap: 10px; }
+.ov-hero:has(.ov-kicker) .ov-kicker { grid-row: 1; grid-column: 1; }
+.ov-hero:has(.ov-kicker) .ov-hero-date { grid-row: 1; grid-column: 2; justify-self: start; margin: 0; padding: 4px 0; }
+.ov-hero:has(.ov-kicker) .ov-hero-body { grid-column: 1 / -1; }
+.ov-hero-body > :is(h1, h2) { margin: 4px 0 10px; font-size: clamp(2rem, 1.35rem + 3.2vw, 3.4rem); line-height: 1.06; letter-spacing: -.028em; font-weight: 800; }
+.ov-hero-body > p { margin: 0; max-width: 62ch; font-size: clamp(1.02rem, .95rem + .4vw, 1.2rem); line-height: 1.55; color: var(--text-secondary, #96a7c2); }
+
+/* ── A callout: a card with a coloured edge; the tone is also said by its title, never by colour alone ── */
+.ov-callout { margin: 26px 0; padding: 16px 18px; border-left: 4px solid var(--accent, #3b82f6); border-radius: 10px; background: var(--bg-card, #131c2e); }
+.ov-callout-info { border-left-color: var(--accent, #3b82f6); }
+.ov-callout-warn { border-left-color: var(--warning, #f59e0b); }
+.ov-callout-tip { border-left-color: var(--success, #22c55e); }
+.ov-callout-title { margin: 0 0 6px; font-weight: 700; }
+.ov-callout > :last-child { margin-bottom: 0; }
+
+/* ── A stat reads as a figure, in the accent, with what it counts beside it ── */
+.ov-stat { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 26px 0; }
+.ov-stat-value { color: var(--accent, #3b82f6); font-size: clamp(2.2rem, 1.8rem + 2vw, 3rem); font-weight: 800; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+.ov-stat-label { color: var(--text-secondary, #96a7c2); font-size: 1.05rem; }
+
+/* ── A quote ── */
+.ov-quote { margin: 26px 0; padding: 4px 0 4px 18px; border-left: 3px solid color-mix(in srgb, var(--accent, #3b82f6) 45%, var(--border, #1f2d47)); }
+.ov-quote > :first-child { margin-top: 0; }
+.ov-quote-by { margin: 8px 0 0; color: var(--text-muted, #7386a3); font-size: .9rem; }
+
+/* ── Patch notes: a fold per release, a heading per site ── */
+.ov-patchnotes { margin: 26px 0; border: 1px solid var(--border, #1f2d47); border-radius: 12px; background: var(--bg-card, #131c2e); }
+.ov-patchnotes > summary { display: flex; align-items: center; min-height: 46px; padding: 0 14px; font-weight: 700; cursor: pointer; list-style: none; }
+.ov-patchnotes > summary::-webkit-details-marker { display: none; }
+.ov-patchnotes-site { padding: 0 14px 10px; }
+.ov-patchnotes-site h3 { margin: 12px 0 4px; font-size: 1rem; }
+.ov-patchnotes-site ul { margin: 0; padding-left: 20px; }
+
+/* ── An infobox: the facts as rows, the name of each fact quieter than the fact ── */
+.ov-infobox, .ov-timeline { margin: 26px 0; padding: 16px 18px; border: 1px solid var(--border, #1f2d47); border-radius: 12px; background: var(--bg-card, #131c2e); }
+.ov-infobox-title, .ov-timeline-title { margin: 0 0 8px; font-size: 1.05rem; line-height: 1.3; border: 0; padding: 0; }
+.ov-infobox dl { margin: 0; }
+.ov-infobox-row { display: grid; grid-template-columns: minmax(84px, 32%) minmax(0, 1fr); gap: 12px; padding: 7px 0; border-top: 1px solid var(--border, #1f2d47); }
+.ov-infobox dl > .ov-infobox-row:first-child { border-top: 0; }
+.ov-infobox-title + dl > .ov-infobox-row:first-child { border-top: 1px solid var(--border, #1f2d47); }
+.ov-infobox-key { margin: 0; color: var(--text-muted, #7386a3); }
+.ov-infobox-value { margin: 0; overflow-wrap: anywhere; }
+
+/* ── A timeline: a line with a dot per moment, the time in tabular numbers, the words beside it ── */
+.ov-timeline ol { position: relative; list-style: none; margin: 4px 0 0; padding: 0; }
+.ov-timeline ol::before { content: ""; position: absolute; left: 5px; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: color-mix(in srgb, var(--accent, #3b82f6) 30%, transparent); }
+.ov-timeline-item { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 7px 0 7px 24px; }
+.ov-timeline-item::before { content: ""; position: absolute; left: 0; top: 13px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg-card, #131c2e); box-shadow: inset 0 0 0 3px var(--accent, #3b82f6); }
+.ov-timeline-when { min-width: 3.4em; font-weight: 700; color: var(--accent, #3b82f6); font-variant-numeric: tabular-nums; }
+.ov-timeline-text { min-width: 0; }

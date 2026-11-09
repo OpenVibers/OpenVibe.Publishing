@@ -8,7 +8,8 @@ const { suite } = require('./helpers/db');
 
 const { test, run } = suite();
 const ROOT = path.join(__dirname, '..');
-const SUBPATHS = Object.keys(pkg.exports).filter((k) => k !== '.' && k !== './package.json');
+// Modules only: a stylesheet export (./blocks.css) is a file to serve, not code to load (test/blocks-css.test.js).
+const SUBPATHS = Object.keys(pkg.exports).filter((k) => k !== '.' && k !== './package.json' && !k.endsWith('.css'));
 
 test('every subpath export resolves to an existing module', () => {
     assert.deepStrictEqual(SUBPATHS.map((s) => s.slice(2)).sort(),
