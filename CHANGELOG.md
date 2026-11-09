@@ -4,6 +4,12 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.6.1 — 2026-11-09
+
+- `blocks`: a timeline and an infobox have one row per line (1.6.0 made a whole body one row) with list markers
+  dropped, and a row splits at the first ": " or " — ", so a time such as 10:45 stays whole. A timeline's `datetime`
+  is set only for a date or a time. An infobox row without a key is a `<dd>`, valid inside its `<dl>`.
+
 ## 1.6.0 — 2026-11-09
 
 **Additive: `openvibe-publishing/blocks`.** No existing export, table layout, reason code or document shape
