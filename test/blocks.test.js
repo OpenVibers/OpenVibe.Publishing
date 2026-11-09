@@ -235,3 +235,12 @@ test('serialize quotes what needs quoting and writes a bare flag', () => {
 });
 
 run();
+
+// render() is safe on its own: an embed that is not http(s) is never a link (a caller may skip validate()).
+{
+    const b = require('../lib/blocks');
+    const html = b.render(b.parse(':::embed{url="javascript:alert(1)"}\n:::\n'));
+    require('assert').ok(!/href="javascript:/i.test(html), html);
+    const ok = b.render(b.parse(':::embed{url="https://example.com/x"}\n:::\n'));
+    require('assert').ok(/href="https:\/\/example.com\/x"/.test(ok), ok);
+}

@@ -36,6 +36,9 @@ shows its text).
   — an empty credit is never a fake one.
 - The blocks: hero, section, figure, compare, gallery, clip, pic, video, embed, callout, stat, patchnotes,
   infobox, timeline, quote.
+- `render(tree, { renderText })`: a caller whose prose is not plain Markdown renders the text parts itself.
+- `render()` is safe on its own: an embed whose URL is not http(s) is shown as text, never a link (a caller that skipped
+  `validate()` could otherwise publish a `javascript:` link).
 
 ## 1.5.0 — 2026-11-02
 
