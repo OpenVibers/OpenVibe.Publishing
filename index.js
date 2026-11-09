@@ -2,7 +2,7 @@
 /**
  * openvibe-publishing — every module is also its own entry point and can be used alone:
  *   require('openvibe-publishing/revisions'), …/schedule, …/taxonomy, …/citations, …/media,
- *   …/discussion, …/seo, …/authorship, …/index-hooks, …/ssr, …/ai, …/ingest, …/publication,
+ *   …/discussion, …/seo, …/authorship, …/index-hooks, …/ssr, …/blocks, …/ai, …/ingest, …/publication,
  *   …/search-feed, …/search-relay, …/layout
  * This root export loads each one lazily, on first access.
  *
@@ -20,6 +20,7 @@ const MODULES = {
     authorship: './lib/authorship',
     indexHooks: './lib/index-hooks',
     ssr: './lib/ssr',
+    blocks: './lib/blocks',
     ai: './lib/ai',
     ingest: './lib/ingest',
     publication: './lib/publication',

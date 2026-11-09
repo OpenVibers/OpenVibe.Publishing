@@ -3,7 +3,7 @@
 > Shared publishing packages for the OpenVibe publication products: Wiki, Blog, News, Reviews,
 > Deals, Coupons and Trade.
 
-**Status:** alpha, **1.5.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
+**Status:** alpha, **1.6.0**: the stores run on PostgreSQL through the `openvibe-sdk/db` async data
 layer (ADR-035: PostgreSQL 18 behind PgBouncer in production, PGlite in tests). Every store method is
 async, takes the product's `openvibe-sdk/db` handle, and accepts the caller's transaction handle; each
 store gives its DDL as `schema(prefix)` for the product's migrations. v1.1.0 adds the shared ingest
@@ -15,7 +15,8 @@ which puts a record product's pages in OpenVibe.Search (additive). v1.4.1 keeps 
 several slashes (`//feed/`) on the site in `seo.canonicalUrl`, where it threw (a 500 on News, Deals and Blog). v1.5.0 adds
 `openvibe-publishing/search-relay`, which delivers the Search documents a product queued in its own outbox table
 through Search's owner API (Meme, Exchange and Fun queue them; additive). The exit proof (`examples/two-products`) runs in `npm test`.
-Releases v0.1.0 to v1.5.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). Fifteen products pin a release. The seven
+v1.6.0 adds `openvibe-publishing/blocks`, the rich block model Blog and Wiki share: a body is Markdown plus
+blocks, parsed, validated, rendered server-side and flattened to text (additive). Releases v0.1.0 to v1.6.0 are tagged (see [CHANGELOG.md](CHANGELOG.md)). Fifteen products pin a release. The seven
 publication products run on PostgreSQL and are public: openvibe.wiki, openvibe.blog, openvibe.news, openvibe.reviews,
 openvibe.deals, openvibe.coupons and openvibe.trade (on 2026-10-22 Blog, News and Deals pinned v1.4.1, the other four
 v1.3.0). Seven more use `search-feed` to put their pages in OpenVibe.Search: Work, Rent, Help, Inventory, Quest, Host and
@@ -71,6 +72,7 @@ Every module is its own entry point and can be used alone.
 | `openvibe-publishing/index-hooks` | `search.index-document@1` documents and tombstones, the `<owner>.index_document.upserted\|deleted` events OpenVibe.Search consumes, a monotonic index-revision sequencer, and the product's own `<product>.<type>.published\|updated\|unpublished\|deleted` events | `<prefix>_index_revisions` |
 | `openvibe-publishing/ai` | Ask OpenVibe.AI for a draft: run a registered workflow with the product's service token (polls a slow run), read its citations, get the `{ id, version, runId, model }` an AI authorship record needs; coded `AiRunError`s, never a partial draft | — |
 | `openvibe-publishing/ssr` | auto-escaping `html` tagged templates with `raw()`, a safe Markdown subset, plain-text extraction, word count, server pagination, breadcrumbs, diff markup, honest `<time>` | — |
+| `openvibe-publishing/blocks` | The rich block model Blog and Wiki share: a body is Markdown plus blocks (`:::name{attr="value"}` … `:::`); `parse`, `validate`, `render` (server-side HTML, every block a plain-HTML form, images as `<img>` with width/height/alt and lazy loading after the first, the credit line of the image) and `toText` for feeds, search and AI readers | — |
 | `openvibe-publishing/ingest` | The shared ingest chassis: the OpenVibe.Sources client, a named change cursor and the `pullChanges` loop (per-item savepoint isolation, `{applied\|hold\|removed}`), the signed event consumer with an exactly-once inbox, the shared normalisers, and the generic PSL/registrable-host and freshness helpers | `<prefix>_ingest_cursor` |
 | `openvibe-publishing/publication` | The shared publication glue: gate → document → `sequencer.stamp` → events → `outbox.enqueue` on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping; it emits exactly `search.index-document@1` and the product's events | — |
 | `openvibe-publishing/search-feed` | Record pages (listings, job ads, help articles, catalog items) in OpenVibe.Search: `sync`/`remove` on the write's transaction, and a `sweep()` that re-sends only what changed and tombstones vanished rows | — |
