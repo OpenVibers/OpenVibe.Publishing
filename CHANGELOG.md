@@ -4,6 +4,42 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.6.0 — 2026-11-09
+
+**Additive: `openvibe-publishing/blocks`.** No existing export, table layout, reason code or document shape
+changes; a product on v1.5.x upgrades by pinning v1.6.0.
+
+### Added — `openvibe-publishing/blocks`
+
+The rich block model Blog and Wiki share: a post or an article body is Markdown plus blocks, and the
+Markdown stays the source of truth (revisions diff it, and an editor that does not know a block still
+shows its text).
+
+- `blocks.parse(markdown)` → a plain-JSON tree: `{ type: 'root', children: [...] }`, where a run of prose is
+  `{ type: 'text', value }` and a block is `{ type, attrs, children }`. A block is a fenced directive,
+  `:::name{attr="value"}` … `:::`; a one-line block closes itself. Blocks nest (a section holds prose and
+  other blocks). A `:::` inside a fenced code block is prose, never a directive.
+- `blocks.validate(tree)` → `{ ok, errors: [{ path, message }] }`: a missing required attribute, a Media
+  object id that is not one, a section id that is not a slug or that two sections share, a callout tone
+  outside info/warn/tip, an embed url that is not http(s).
+- `blocks.render(tree, options)` → server-rendered HTML, complete without JavaScript. Every block has a
+  plain-HTML form: a section's reactions are a `<form>` that posts (signed out, the reader is asked to
+  sign in), the patch notes are a `<details>` grouped by site with every commit linked, the images are
+  `<img>` with width, height and alt, and `loading="lazy"` after the first one. The caller resolves the
+  Media ids (`media`, `urlFor`); the renderer never guesses a URL and a broken object renders as an
+  explicit "no longer available" placeholder.
+- `blocks.toText(tree)` → the plain text of a body: what a feed, a search document and an AI reader get.
+- `seo.structuredData.article({ ..., hasPart })` → the sections of the article as WebPageElements, so a reader (and a crawler) sees the parts of a long post.
+- `blocks.serialize(tree)` → the Markdown that parses back into the same tree: a caller who has blocks (an editor, an agent) hands Blog the Markdown it will keep, and the Markdown stays the source of truth.
+- `blocks.creditLine(credit)` → the credit of an image: an AI image says "Made with <model>", an Openverse
+  or Commons image keeps its licence and its author (both linked), and nothing known means no credit line
+  — an empty credit is never a fake one.
+- The blocks: hero, section, figure, compare, gallery, clip, pic, video, embed, callout, stat, patchnotes,
+  infobox, timeline, quote.
+- `render(tree, { renderText })`: a caller whose prose is not plain Markdown renders the text parts itself.
+- `render()` is safe on its own: an embed whose URL is not http(s) is shown as text, never a link (a caller that skipped
+  `validate()` could otherwise publish a `javascript:` link).
+
 ## 1.5.0 — 2026-11-02
 
 **Additive: `openvibe-publishing/search-relay`.** No existing export, table layout, reason code or document shape
