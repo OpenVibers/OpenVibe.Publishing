@@ -45,7 +45,7 @@ test('renderDocument composes one whole document through openvibe-shared/shell',
     assert.match(out, /<a class="skip" href="#main">Skip to content<\/a>\n<div id="navbar-mount"><\/div>/);
     assert.match(out, /<noscript><div class="account-bar"[^>]*><a href="\/auth\/login">Sign in with OpenVibe<\/a><\/div><\/noscript>/);
     assert.match(out, /<main id="main" class="page">\n<h1>A story<\/h1>\n<\/main>/);
-    assert.match(out, /<noscript><nav aria-label="Site"[^>]*><a href="\/"[^>]*>OpenVibe\.News<\/a><a href="\/">News<\/a><a href="\/topics">Topics<\/a>/);
+    assert.match(out, /<div id="navbar-mount"><nav class="openvibe-navbar"[^>]*data-ov-server-nav="true"[^>]*><a href="\/"[^>]*>OpenVibe\.News<\/a><a data-ov-nav-link="true" href="\/">News<\/a><a data-ov-nav-link="true" href="\/topics">Topics<\/a>/);
 });
 
 test('robots always comes from the decision, and a decision canonical wins over o.canonical', () => {
