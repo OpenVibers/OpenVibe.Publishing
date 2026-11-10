@@ -42,7 +42,9 @@ test('renderDocument composes one whole document through openvibe-shared/shell',
     assert.match(out, /OpenVibeNavbar\.init\(/);
     assert.match(out, /OpenVibeFooter\.init\(window\.__OV_PAGE\.footer\)/);
     assert.match(out, /window\.__OV_PAGE = \{"navbar":\{"service":"news"/);
-    assert.match(out, /<a class="skip" href="#main">Skip to content<\/a>\n<div id="navbar-mount"><\/div>/);
+    // openvibe-shared 4.190.0 fills the page's own #navbar-mount with the server nav in place (shell.oneMount),
+    // so the skip link is followed by the bar itself rather than an empty placeholder; line 48 checks its links.
+    assert.match(out, /<a class="skip" href="#main">Skip to content<\/a>\n<div id="navbar-mount">/);
     assert.match(out, /<noscript><div class="account-bar"[^>]*><a href="\/auth\/login">Sign in with OpenVibe<\/a><\/div><\/noscript>/);
     assert.match(out, /<main id="main" class="page">\n<h1>A story<\/h1>\n<\/main>/);
     assert.match(out, /<div id="navbar-mount"><nav class="openvibe-navbar"[^>]*data-ov-server-nav="true"[^>]*><a href="\/"[^>]*>OpenVibe\.News<\/a><a data-ov-nav-link="true" href="\/">News<\/a><a data-ov-nav-link="true" href="\/topics">Topics<\/a>/);
