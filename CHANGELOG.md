@@ -4,6 +4,11 @@ All notable changes to `openvibe-publishing`. Versions follow [semver](https://s
 breaking change to any exported function, table layout, reason code or document shape is a new
 major (a minor while 0.x). A release is the git tag `vX.Y.Z`; consumers pin the tag's tarball.
 
+## 1.7.1 — 2026-11-10
+
+- `blocks.css`: a callout with no title starts at its padding (its first paragraph's top margin pushed the words
+  down, so the card looked taller above its text than below).
+
 ## 1.7.0 — 2026-11-09
 
 - **`openvibe-publishing/blocks.css`: one stylesheet for every block the library renders** (additive). The look of
