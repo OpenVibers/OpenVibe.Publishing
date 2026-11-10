@@ -73,6 +73,7 @@
 .ov-callout-warn { border-left-color: var(--warning, #f59e0b); }
 .ov-callout-tip { border-left-color: var(--success, #22c55e); }
 .ov-callout-title { margin: 0 0 6px; font-weight: 700; }
+.ov-callout > :first-child { margin-top: 0; }
 .ov-callout > :last-child { margin-bottom: 0; }
 
 /* ── A stat reads as a figure, in the accent, with what it counts beside it ── */
