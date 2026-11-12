@@ -52,7 +52,7 @@
   "exitProof": "examples/two-products + test/two-products.test.js",
   "contracts": "openvibe-contracts v0.416.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
   "sdk": "openvibe-sdk v0.160.0",
-  "shared": "openvibe-shared v4.223.1",
+  "shared": "openvibe-shared v4.225.0",
   "dependsOn": [
     "openvibe-sdk >=0.15.0 (peer; tests pin v0.60.0)",
     "openvibe-shared >=1.5.0 (optional peer; tests pin v4.4.0; layout needs >=2.6.0)",
