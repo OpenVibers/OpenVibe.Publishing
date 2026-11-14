@@ -51,7 +51,7 @@
   "plannedConsumers": [],
   "exitProof": "examples/two-products + test/two-products.test.js",
   "contracts": "openvibe-contracts v0.419.0 (devDependency): emits search.index-document@1 and events.event-envelope@1 (validated in tests)",
-  "sdk": "openvibe-sdk v0.167.0",
+  "sdk": "openvibe-sdk v0.168.0",
   "shared": "openvibe-shared v4.247.0",
   "dependsOn": [
     "openvibe-sdk >=0.15.0 (peer; tests pin v0.60.0)",
@@ -79,5 +79,5 @@
     "the publication glue: gate → document → sequencer.stamp → events → outbox.enqueue on the caller's transaction handle, tombstones on unpublish/merge, and the IndexNow ping",
     "the page document through openvibe-shared/shell page(): robots and canonical from the gate's decision, article times, prev/next, feeds, app icon, stylesheets, boost marker and the footer init, plus the AI summary (ai-summary meta, WebPage JSON-LD, facts block) when the caller passes summary/facts/updated/url"
   ],
-  "updated": "2026-11-13"
+  "updated": "2026-11-14"
 }
