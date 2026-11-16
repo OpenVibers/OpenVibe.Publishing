@@ -53,7 +53,8 @@ test('better-sqlite3 is gone from the package; openvibe-sdk is a peer (one copy 
     for (const k of ['dependencies', 'peerDependencies', 'devDependencies', 'optionalDependencies']) assert.ok(!(pkg[k] || {})['better-sqlite3'], k);
     assert.strictEqual(pkg.peerDependencies['openvibe-sdk'], '>=0.15.0');
     // A release tag's tarball (the pin bot moves the version; any tag is fine, a branch or file: link is not).
-    assert.match(pkg.devDependencies['openvibe-sdk'], /^https:\/\/codeload\.github\.com\/OpenVibers\/OpenVibe\.SDK\/tar\.gz\/refs\/tags\/v\d+\.\d+\.\d+$/);
+    // A release pin: GitHub's archive, or our forge's (git.openvibe.codes, which the pin bot writes since 2026-11).
+    assert.match(pkg.devDependencies['openvibe-sdk'], /^https:\/\/(codeload\.github\.com\/OpenVibers\/OpenVibe\.SDK\/tar\.gz\/refs\/tags\/v\d+\.\d+\.\d+|git\.openvibe\.codes\/api\/v1\/repos\/openvibers\/openvibe\.sdk\/archive\/v\d+\.\d+\.\d+\.tar\.gz)$/);
     assert.ok(!(pkg.dependencies || {})['openvibe-sdk']);
 });
 
