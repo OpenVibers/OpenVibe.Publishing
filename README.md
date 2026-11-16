@@ -425,3 +425,9 @@ eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --us
 - Contracts it produces for: `common.entity-ref@1`, `media.media-ref@1`, `events.event-envelope@1`
   and `search.index-document@1` (validated in tests against `openvibe-contracts` v0.443.0, a
   devDependency: nothing in `lib/` needs it at runtime).
+
+<!-- versions:start -->
+- openvibe-contracts: v0.443.0
+- openvibe-sdk: v0.177.0
+- openvibe-shared: v4.288.0
+<!-- versions:end -->
