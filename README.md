@@ -429,5 +429,5 @@ eval "$(node_modules/openvibe-sdk/scripts/test-services.sh up)" && fnm exec --us
 <!-- versions:start -->
 - openvibe-contracts: v0.449.0
 - openvibe-sdk: v0.188.0
-- openvibe-shared: v4.325.0
+- openvibe-shared: v4.327.0
 <!-- versions:end -->
